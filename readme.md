@@ -2,6 +2,7 @@
     - auto rotate
     - keep aspect ratio
 * Gallery mode
+* search among name
 * Slide show mode (Ken burns)
 * Copy/Move/Link/Remove images
 * Open with..

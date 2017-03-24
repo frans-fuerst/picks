@@ -24,7 +24,31 @@
     <item row="0" column="0">
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
-       <widget class="QListWidget" name="lst_files"/>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QLineEdit" name="txt_filter">
+          <property name="maximumSize">
+           <size>
+            <width>300</width>
+            <height>16777215</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QListWidget" name="lst_files">
+          <property name="maximumSize">
+           <size>
+            <width>300</width>
+            <height>16777215</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item>
        <widget class="QLabel" name="lbl_viewer">

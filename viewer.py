@@ -1,22 +1,27 @@
 #!/usr/bin/env python3
 
+'''
+[x] auto rotate
+[x] sorting
+[ ] center image
+[x] aspect ratio
+[ ] read path on command line
+[ ] react on SPACE/BACK
+'''
+
+
 import sys
 import os
 import signal
 import glob
 import logging
+import exifread
 from abc import ABCMeta, abstractmethod
 from PyQt5 import QtWidgets, QtGui, QtCore, uic
 
-LOG = logging.getLogger('viewer_ui')
-IMAGE_PATTERN = ('*.jpg', '*.jpeg', '*.png', '*.bmp')
+import viewer_core
 
-def list_pics() -> list:
-    def insensitive_glob(pattern):
-        def either(c):
-            return '[%s%s]'%(c.lower(),c.upper()) if c.isalpha() else c
-        return glob.glob(''.join(map(either, pattern)))
-    return sum([insensitive_glob(p) for p in IMAGE_PATTERN], [])
+LOG = logging.getLogger('viewer_ui')
 
 class Viewer(QtWidgets.QMainWindow):
     _colors = [
@@ -39,7 +44,6 @@ class Viewer(QtWidgets.QMainWindow):
         QtCore.Qt.yellow]
 
     def __init__(self):
-
         super().__init__()
 
         self.setMouseTracking(True)
@@ -48,21 +52,39 @@ class Viewer(QtWidgets.QMainWindow):
 
         if len(sys.argv) > 1:
             os.chdir(sys.argv[1])
-        
-        for f in list_pics():
-            print (f)
-            self.lst_files.addItem(f)
+
+        self.list_files(pattern='')
+
         self.show()
 
         #self.pb_start_p1.clicked.connect(self.on_clicked_pb_start_p1)
         self.lst_files.itemClicked.connect(self.item_click)
-    
-    def item_click(self, item):
-        self.show_image(str(item.text()))
+        self.txt_filter.textChanged.connect(self.filter_changed)
 
-    def show_image(self, filename: str):
+    def list_files(self, pattern: str):
+        self.lst_files.clear()
+        p_lower = pattern.lower()
+        for f in viewer_core.list_pics():
+            if p_lower not in f.lower():
+                continue
+            print (f)
+            self.lst_files.addItem(f)
+
+    def filter_changed(self, text):
+        self.list_files(pattern=text)
+
+    def item_click(self, item):
+        self.set_image(str(item.text()))
+
+    def set_image(self, filename: str):
+        tags = viewer_core.get_tags(filename)
         pixmap = QtGui.QPixmap(filename)
-        self.lbl_viewer.setPixmap(pixmap.scaled(self.lbl_viewer.width(), self.lbl_viewer.height()))
+        self.lbl_viewer.setPixmap(
+            pixmap.transformed(
+                QtGui.QTransform().rotate(
+                    viewer_core.get_orientation(tags))).scaled(
+                        self.lbl_viewer.width(), self.lbl_viewer.height(),
+                        QtCore.Qt.KeepAspectRatio))
         self.lbl_viewer.setMask(pixmap.mask())
 
     def on_clicked_pb_start_p1(self):

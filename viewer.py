@@ -1,15 +1,6 @@
 #!/usr/bin/env python3
 
 '''
-[x] auto rotate
-[x] sorting
-[x] center image
-[x] aspect ratio
-[x] read path on command line
-[x] react on SPACE/BACK
-[x] nice dark theme style
-[ ] show exif info
-[x] copy on F7
 
 * research: copy file: from shutil import copyfile copyfile(src, dst)
 * research: exif dates
@@ -35,6 +26,7 @@ import viewer_core
 LOG = logging.getLogger('viewer_ui')
 STYLESHEET = 'qdarkstyle.qss'
 APP_DIR = os.path.dirname(os.path.realpath(__file__))
+SELECTED_DIR_NAME = "SELECTED_PICKS"
 
 class Picks(QtWidgets.QMainWindow):
 
@@ -112,12 +104,12 @@ class Picks(QtWidgets.QMainWindow):
 
     def copy_current_file(self):
         try:
-            os.makedirs('selected')
+            os.makedirs(SELECTED_DIR_NAME)
         except FileExistsError:
             pass
         filename = self.selected_filename()
-        LOG.info('copy file "%s" to "selected" folder' % filename)
-        shutil.copyfile(filename, os.path.join('selected', filename))
+        LOG.info('copy file "%s" to "%s" folder' % (SELECTED_DIR_NAME, filename))
+        shutil.copyfile(filename, os.path.join(SELECTED_DIR_NAME, filename))
 
     def toggle_fullscreen(self):
         if self.isFullScreen():

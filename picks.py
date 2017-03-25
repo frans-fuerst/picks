@@ -23,7 +23,7 @@ from PyQt5 import QtWidgets, QtGui, QtCore, uic
 
 import viewer_core
 
-LOG = logging.getLogger('viewer_ui')
+LOG = logging.getLogger('picks')
 STYLESHEET = 'qdarkstyle.qss'
 APP_DIR = os.path.dirname(os.path.realpath(__file__))
 SELECTED_DIR_NAME = "SELECTED_PICKS"
@@ -33,7 +33,7 @@ class Picks(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
 
-        uic.loadUi(os.path.join(APP_DIR, 'viewer.ui'), self)
+        uic.loadUi(os.path.join(APP_DIR, 'picks.ui'), self)
 
         self.setMouseTracking(True)
 

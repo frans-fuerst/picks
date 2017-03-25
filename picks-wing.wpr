@@ -1,0 +1,19 @@
+#!wing
+#!version=5.0
+##################################################################
+# Wing IDE project file                                          #
+##################################################################
+[project attributes]
+proj.directory-list = [{'dirloc': loc('.'),
+                        'excludes': (),
+                        'filter': u'*',
+                        'include_hidden': False,
+                        'recursive': True,
+                        'watch_for_changes': True}]
+proj.file-type = 'shared'
+proj.launch-config = {loc('auto_mate.py'): ('project',
+        (u'~/_melburn_2017/146___03',
+         '')),
+                      loc('viewer.py'): ('project',
+        (u'~/_melburn_2017/146___03',
+         ''))}

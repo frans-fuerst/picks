@@ -3,45 +3,30 @@
 '''
 [x] auto rotate
 [x] sorting
-[ ] center image
+[x] center image
 [x] aspect ratio
-[ ] read path on command line
-[ ] react on SPACE/BACK
+[x] read path on command line
+[x] react on SPACE/BACK
+[ ] nice dark theme style
+
+* research: open directory dialog
+* restore layout after fullscreen
+* research qt dark theme style
+* research: capture key press / parent / handle
 '''
 
 
 import sys
 import os
 import signal
-import glob
 import logging
-import exifread
-from abc import ABCMeta, abstractmethod
 from PyQt5 import QtWidgets, QtGui, QtCore, uic
 
 import viewer_core
 
 LOG = logging.getLogger('viewer_ui')
 
-class Viewer(QtWidgets.QMainWindow):
-    _colors = [
-        QtCore.Qt.green,
-        QtCore.Qt.blue,
-        QtCore.Qt.red,
-        QtCore.Qt.cyan,
-        QtCore.Qt.magenta,
-        QtCore.Qt.darkBlue,
-        QtCore.Qt.darkCyan,
-        QtCore.Qt.darkGray,
-        QtCore.Qt.darkGreen,
-        QtCore.Qt.darkMagenta,
-        QtCore.Qt.darkRed,
-        QtCore.Qt.darkYellow,
-        QtCore.Qt.lightGray,
-        QtCore.Qt.gray,
-        QtCore.Qt.white,
-        QtCore.Qt.black,
-        QtCore.Qt.yellow]
+class Picks(QtWidgets.QMainWindow):
 
     def __init__(self):
         super().__init__()
@@ -50,6 +35,10 @@ class Viewer(QtWidgets.QMainWindow):
         self._directory = os.path.dirname(os.path.realpath(__file__))
         uic.loadUi(os.path.join(self._directory, 'viewer.ui'), self)
 
+        self.lst_files.itemClicked.connect(self.list_item_clicked)
+        self.txt_filter.textChanged.connect(self.filter_changed)
+        self.lst_files.keyPressEvent = self.other_widgets_keypress_event
+
         if len(sys.argv) > 1:
             os.chdir(sys.argv[1])
 
@@ -57,9 +46,10 @@ class Viewer(QtWidgets.QMainWindow):
 
         self.show()
 
-        #self.pb_start_p1.clicked.connect(self.on_clicked_pb_start_p1)
-        self.lst_files.itemClicked.connect(self.item_click)
-        self.txt_filter.textChanged.connect(self.filter_changed)
+        self.goto(0)
+
+    def other_widgets_keypress_event(self, event):
+        self.keyPressEvent(event)
 
     def list_files(self, pattern: str):
         self.lst_files.clear()
@@ -67,16 +57,30 @@ class Viewer(QtWidgets.QMainWindow):
         for f in viewer_core.list_pics():
             if p_lower not in f.lower():
                 continue
-            print (f)
             self.lst_files.addItem(f)
 
     def filter_changed(self, text):
         self.list_files(pattern=text)
 
-    def item_click(self, item):
-        self.set_image(str(item.text()))
+    def list_item_clicked(self, _):
+        self.goto(self.lst_files.currentRow())
+
+    def jump(self, items: int):
+        next_index = self.lst_files.currentRow() + items
+        self.goto(
+            0 if next_index < 0 else
+            self.lst_files.count() - 1 if next_index >= self.lst_files.count() else
+            next_index)
+
+    def goto(self, index: int):
+        self.lst_files.setCurrentRow(
+            self.lst_files.count() - 1 if index < 0 else index)
+        filename = self.lst_files.currentItem().text()
+        print('show file %d: %s' % (self.lst_files.currentRow(), filename))
+        self.set_image(filename)
 
     def set_image(self, filename: str):
+        self.setWindowTitle('Picks - %s' % filename)
         tags = viewer_core.get_tags(filename)
         pixmap = QtGui.QPixmap(filename)
         self.lbl_viewer.setPixmap(
@@ -93,29 +97,45 @@ class Viewer(QtWidgets.QMainWindow):
     def mouseReleaseEvent(self, event):
         pass
 
-    def handle_signal(self, signal:int) -> None:
+    def handle_signal(self, _: int) -> None:
         self.close()
+
+    def copy_current_file(self):
+        print('copy')
+
+    def toggle_fullscreen(self):
+        if self.isFullScreen():
+            self.frm_filelist.setVisible(True)
+            self.txt_filter.setEnabled(True)
+            self.showNormal()
+#            self.restoreGeometry(self._geometry)
+        else:
+#            self._geometry = self.saveGeometry()
+            self.frm_filelist.setVisible(False)
+            self.txt_filter.setEnabled(False)
+            self.showFullScreen()
+
+    def void(self):
+        print('void')
 
     def keyPressEvent(self, event):
         try:
-            key = {16777235: 0,
-                   16777237: 1,
-                   16777234: 2,
-                   16777236: 3}[event.key()]
-#            self._world.handle_key_press(key)
-#            self._update_field()
+            {
+                QtCore.Qt.Key_F7:        self.copy_current_file,
+                QtCore.Qt.Key_F11:       self.toggle_fullscreen,
+                QtCore.Qt.Key_Backspace: lambda: self.jump(-1),
+                QtCore.Qt.Key_Left:      lambda: self.jump(-1),
+                QtCore.Qt.Key_Up:        lambda: self.jump(-1),
+                QtCore.Qt.Key_Space:     lambda: self.jump(1),
+                QtCore.Qt.Key_Right:     lambda: self.jump(1),
+                QtCore.Qt.Key_Down:      lambda: self.jump(1),
+                QtCore.Qt.Key_PageUp:    lambda: self.jump(-10),
+                QtCore.Qt.Key_PageDown:  lambda: self.jump(10),
+                QtCore.Qt.Key_Home:      lambda: self.goto(0),
+                QtCore.Qt.Key_End:       lambda: self.goto(-1),
+             }[event.key()]()
         except KeyError:
             print('unknown key', event.key())
-#        logger.log_i() << "keyPressEvent '" << k->key();
-#        switch (k->key()) {
-#    case Qt::Key_Back:
-#    case Qt::Key_Escape:
-#       if (m_txt_note->isVisible()) {
-#            m_lst_search_result->clearSelection();
-#        } else if (m_frm_status->isVisible()) {
-#             m_frm_status->setVisible(false);
-#        } else if (k->key() == Qt::Key_Back) {
-#            close();
 
 
 def main():
@@ -125,7 +145,7 @@ def main():
     LOG.info('.'.join((str(e) for e in sys.version_info)))
 
     app = QtWidgets.QApplication(sys.argv)
-    ex = Viewer()
+    ex = Picks()
 
     for s in (signal.SIGABRT, signal.SIGINT, signal.SIGSEGV, signal.SIGTERM):
         signal.signal(s, lambda signal, frame: ex.handle_signal(signal))

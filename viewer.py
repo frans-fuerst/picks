@@ -7,9 +7,9 @@
 [x] aspect ratio
 [x] read path on command line
 [x] react on SPACE/BACK
-[ ] nice dark theme style
+[x] nice dark theme style
 [ ] show exif info
-[ ] copy on F7
+[x] copy on F7
 
 * research: copy file: from shutil import copyfile copyfile(src, dst)
 * research: exif dates
@@ -17,6 +17,9 @@
 * restore layout after fullscreen
 * research qt dark theme style
 * research: capture key press / parent / handle
+
+* more sophisticated resizing:
+    http://stackoverflow.com/questions/21041941
 '''
 
 
@@ -30,14 +33,15 @@ from PyQt5 import QtWidgets, QtGui, QtCore, uic
 import viewer_core
 
 LOG = logging.getLogger('viewer_ui')
+STYLESHEET = 'qdarkstyle.qss'
+APP_DIR = os.path.dirname(os.path.realpath(__file__))
 
 class Picks(QtWidgets.QMainWindow):
 
     def __init__(self):
         super().__init__()
 
-        self._directory = os.path.dirname(os.path.realpath(__file__))
-        uic.loadUi(os.path.join(self._directory, 'viewer.ui'), self)
+        uic.loadUi(os.path.join(APP_DIR, 'viewer.ui'), self)
 
         self.setMouseTracking(True)
 
@@ -120,13 +124,10 @@ class Picks(QtWidgets.QMainWindow):
             self.frm_filelist.setVisible(True)
             self.txt_filter.setEnabled(True)
             self.showNormal()
-#            self.restoreGeometry(self._geometry)
         else:
-#            self._geometry = self.saveGeometry()
             self.frm_filelist.setVisible(False)
             self.txt_filter.setEnabled(False)
             self.showFullScreen()
-#        self.show()
 
     def resizeEvent(self, event: QtGui.QResizeEvent):
         try:
@@ -169,6 +170,10 @@ def main():
     LOG.info('.'.join((str(e) for e in sys.version_info)))
 
     app = QtWidgets.QApplication(sys.argv)
+
+    with open(os.path.join(APP_DIR, STYLESHEET)) as f:
+        app.setStyleSheet(f.read())
+
     ex = Picks()
 
     for s in (signal.SIGABRT, signal.SIGINT, signal.SIGSEGV, signal.SIGTERM):
@@ -184,4 +189,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

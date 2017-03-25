@@ -8,7 +8,11 @@
 [x] read path on command line
 [x] react on SPACE/BACK
 [ ] nice dark theme style
+[ ] show exif info
+[ ] copy on F7
 
+* research: copy file: from shutil import copyfile copyfile(src, dst)
+* research: exif dates
 * research: open directory dialog
 * restore layout after fullscreen
 * research qt dark theme style
@@ -20,6 +24,7 @@ import sys
 import os
 import signal
 import logging
+import shutil
 from PyQt5 import QtWidgets, QtGui, QtCore, uic
 
 import viewer_core
@@ -31,9 +36,10 @@ class Picks(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setMouseTracking(True)
         self._directory = os.path.dirname(os.path.realpath(__file__))
         uic.loadUi(os.path.join(self._directory, 'viewer.ui'), self)
+
+        self.setMouseTracking(True)
 
         self.lst_files.itemClicked.connect(self.list_item_clicked)
         self.txt_filter.textChanged.connect(self.filter_changed)
@@ -75,9 +81,12 @@ class Picks(QtWidgets.QMainWindow):
     def goto(self, index: int):
         self.lst_files.setCurrentRow(
             self.lst_files.count() - 1 if index < 0 else index)
-        filename = self.lst_files.currentItem().text()
+        filename = self.selected_filename()
         print('show file %d: %s' % (self.lst_files.currentRow(), filename))
         self.set_image(filename)
+
+    def selected_filename(self) -> str:
+        return self.lst_files.currentItem().text()
 
     def set_image(self, filename: str):
         self.setWindowTitle('Picks - %s' % filename)
@@ -91,9 +100,6 @@ class Picks(QtWidgets.QMainWindow):
                         QtCore.Qt.KeepAspectRatio))
         self.lbl_viewer.setMask(pixmap.mask())
 
-    def on_clicked_pb_start_p1(self):
-        pass
-
     def mouseReleaseEvent(self, event):
         pass
 
@@ -101,7 +107,13 @@ class Picks(QtWidgets.QMainWindow):
         self.close()
 
     def copy_current_file(self):
-        print('copy')
+        try:
+            os.makedirs('selected')
+        except FileExistsError:
+            pass
+        filename = self.selected_filename()
+        LOG.info('copy file "%s" to "selected" folder' % filename)
+        shutil.copyfile(filename, os.path.join('selected', filename))
 
     def toggle_fullscreen(self):
         if self.isFullScreen():
@@ -114,6 +126,13 @@ class Picks(QtWidgets.QMainWindow):
             self.frm_filelist.setVisible(False)
             self.txt_filter.setEnabled(False)
             self.showFullScreen()
+#        self.show()
+
+    def resizeEvent(self, event: QtGui.QResizeEvent):
+        try:
+            self.set_image(self.selected_filename())
+        except AttributeError:
+            pass
 
     def void(self):
         print('void')
@@ -121,7 +140,12 @@ class Picks(QtWidgets.QMainWindow):
     def keyPressEvent(self, event):
         try:
             {
+                # F2: rename
+                # F3: edit
+                # F5: slideshow
                 QtCore.Qt.Key_F7:        self.copy_current_file,
+                # F8: link
+                # F9: move
                 QtCore.Qt.Key_F11:       self.toggle_fullscreen,
                 QtCore.Qt.Key_Backspace: lambda: self.jump(-1),
                 QtCore.Qt.Key_Left:      lambda: self.jump(-1),

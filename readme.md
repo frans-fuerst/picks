@@ -4,11 +4,6 @@
     [x] center image
     [x] keep aspect ratio
 
-- Gallery mode
-
-- Slideshow mode
-    [ ] Ken burns
-
 * Command line args
     [x] read path on command line
 
@@ -16,11 +11,13 @@
     [x] alphabetically
 
 * Full keyboard use
-    [x] react on SPACE/BACK
-    [x] F7: copy on F7
+    [x] Navigate on Page UP/DOWN, Arrow Up/Down/Left/Right/Space/Back
+    [ ] F5: Slideshow
+    [x] F7: copy
+    [x] F11: toggle fullscreen
     [x] DEL: delete (move)
-    [ ] link
-    [ ] move
+    [ ] F8: link
+    [ ] F9: move
 
 * Search
     [x] among name
@@ -28,24 +25,41 @@
 * Nice look
     [x] dark theme style
 
+
+Not yet implemented
+-------------------
+* Performance
+    [ ] cache viewed files
+    [ ] pre cache files
+* Usability
+    [ ] inotify folder and update list
+    [ ] show decent popup info on actions
+
+* Modify tags stored in filename
+
+* Read and apply GPS data from GPX tracks
+
+* Gallery mode
+
+* Slideshow mode
+    [ ] Ken burns
+
+* Open with..
+
+* show movies
+
+* directory navigation
+
+* merge selection viewer
+
+* show EXIF
+
 * Zoom
     [ ] toggle zoom
 
 * Persistence
     [ ] store current filename (across sessions and list updates)
 
-* Usability
-    [ ] inotify folder and update list
-    [ ] show decent popup info on actions
-
-- Modify tags stored in filename
-
-- Open with..
-
-- Compare pictures
+* Compare pictures
     [ ] in zoom mode
     [ ] with focus peaking
-
-- merge selection viewer
-
-- show EXIF

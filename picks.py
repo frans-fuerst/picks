@@ -28,6 +28,7 @@ STYLESHEET = 'qdarkstyle.qss'
 APP_DIR = os.path.dirname(os.path.realpath(__file__))
 SELECTED_DIR_NAME = "SELECTED_PICKS"
 
+
 class Picks(QtWidgets.QMainWindow):
 
     def __init__(self):
@@ -111,6 +112,9 @@ class Picks(QtWidgets.QMainWindow):
         LOG.info('copy file "%s" to "%s" folder' % (SELECTED_DIR_NAME, filename))
         shutil.copyfile(filename, os.path.join(SELECTED_DIR_NAME, filename))
 
+    def delete_current_file(self):
+        print('delete')
+
     def toggle_fullscreen(self):
         if self.isFullScreen():
             self.frm_filelist.setVisible(True)
@@ -137,6 +141,7 @@ class Picks(QtWidgets.QMainWindow):
                 # F3: edit
                 # F5: slideshow
                 QtCore.Qt.Key_F7:        self.copy_current_file,
+                QtCore.Qt.Key_Delete:    self.delete_current_file,
                 # F8: link
                 # F9: move
                 QtCore.Qt.Key_F11:       self.toggle_fullscreen,

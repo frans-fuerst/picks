@@ -24,9 +24,12 @@ from PyQt5 import QtWidgets, QtGui, QtCore, uic
 import viewer_core
 
 LOG = logging.getLogger('picks')
-STYLESHEET = 'qdarkstyle.qss'
+#STYLESHEET = 'darkorange.stylesheet'
+#STYLESHEET = 'qdarkstyle.qss'
+STYLESHEET = 'QTDark.stylesheet'
 APP_DIR = os.path.dirname(os.path.realpath(__file__))
 SELECTED_DIR_NAME = "SELECTED_PICKS"
+DELETED_DIR_NAME = ".picks.deleted"
 
 
 class Picks(QtWidgets.QMainWindow):
@@ -45,31 +48,37 @@ class Picks(QtWidgets.QMainWindow):
         if len(sys.argv) > 1:
             os.chdir(sys.argv[1])
 
-        self.list_files(pattern='')
+        self.le_directory.setText(os.getcwd())
+        self.list_files()
 
         self.show()
 
         self.goto(0)
 
+    def update_file_list(self):
+        ''' '''
+
     def other_widgets_keypress_event(self, event):
         self.keyPressEvent(event)
 
-    def list_files(self, pattern: str):
+    def list_files(self):
+        current_index = self.selected_index()
         self.lst_files.clear()
-        p_lower = pattern.lower()
+        p_lower = self.txt_filter.text().lower()
         for f in viewer_core.list_pics():
             if p_lower not in f.lower():
                 continue
             self.lst_files.addItem(f)
+        self.goto(current_index)
 
     def filter_changed(self, text):
-        self.list_files(pattern=text)
+        self.list_files()
 
     def list_item_clicked(self, _):
         self.goto(self.lst_files.currentRow())
 
     def jump(self, items: int):
-        next_index = self.lst_files.currentRow() + items
+        next_index = self.selected_index() + items
         self.goto(
             0 if next_index < 0 else
             self.lst_files.count() - 1 if next_index >= self.lst_files.count() else
@@ -79,16 +88,24 @@ class Picks(QtWidgets.QMainWindow):
         self.lst_files.setCurrentRow(
             self.lst_files.count() - 1 if index < 0 else index)
         filename = self.selected_filename()
-        print('show file %d: %s' % (self.lst_files.currentRow(), filename))
+        print('show file %d: %s' % (self.selected_index(), filename))
         self.set_image(filename)
 
     def selected_filename(self) -> str:
         return self.lst_files.currentItem().text()
 
+    def selected_index(self) -> int:
+        return self.lst_files.currentRow()
+
     def set_image(self, filename: str):
+        import time
         self.setWindowTitle('Picks - %s' % filename)
+        t1 = time.time()
         tags = viewer_core.get_tags(filename)
+        t2 = time.time()
         pixmap = QtGui.QPixmap(filename)
+        t3 = time.time()
+        print('%.2f %.2f %.2f' % (t3-t1, t2-t1, t3-t2))
         self.lbl_viewer.setPixmap(
             pixmap.transformed(
                 QtGui.QTransform().rotate(
@@ -104,24 +121,27 @@ class Picks(QtWidgets.QMainWindow):
         self.close()
 
     def copy_current_file(self):
-        try:
-            os.makedirs(SELECTED_DIR_NAME)
-        except FileExistsError:
-            pass
+        os.makedirs(SELECTED_DIR_NAME, exist_ok=True)
         filename = self.selected_filename()
-        LOG.info('copy file "%s" to "%s" folder' % (SELECTED_DIR_NAME, filename))
+        LOG.info('copy file "%s" to "%s" folder' % (filename, SELECTED_DIR_NAME))
         shutil.copyfile(filename, os.path.join(SELECTED_DIR_NAME, filename))
 
     def delete_current_file(self):
-        print('delete')
+        os.makedirs(DELETED_DIR_NAME, exist_ok=True)
+        filename = self.selected_filename()
+        LOG.info('remove "%s"' % filename)
+        shutil.move(filename, os.path.join(DELETED_DIR_NAME, filename))
+        self.list_files()
 
     def toggle_fullscreen(self):
         if self.isFullScreen():
             self.frm_filelist.setVisible(True)
+            self.le_directory.setVisible(True)
             self.txt_filter.setEnabled(True)
             self.showNormal()
         else:
             self.frm_filelist.setVisible(False)
+            self.le_directory.setVisible(False)
             self.txt_filter.setEnabled(False)
             self.showFullScreen()
 

@@ -1,3 +1,5 @@
+Partly available
+----------------
 
 * Single picture mode
     [x] auto rotate
@@ -28,14 +30,19 @@
 
 Not yet implemented
 -------------------
+
+* Modify tags stored in filename
+
 * Performance
     [ ] cache viewed files
     [ ] pre cache files
+
+* Persistence
+    [ ] store current filename (across sessions and list updates)
+
 * Usability
     [ ] inotify folder and update list
     [ ] show decent popup info on actions
-
-* Modify tags stored in filename
 
 * Read and apply GPS data from GPX tracks
 
@@ -56,9 +63,6 @@ Not yet implemented
 
 * Zoom
     [ ] toggle zoom
-
-* Persistence
-    [ ] store current filename (across sessions and list updates)
 
 * Compare pictures
     [ ] in zoom mode

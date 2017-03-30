@@ -42,7 +42,6 @@ class Picks(QtWidgets.QMainWindow):
         uic.loadUi(os.path.join(APP_DIR, 'picks.ui'), self)
 
         self._config = self._read_config(CONFIG_FILE)
-        self._set_config_value('index', 7)
         self.setMouseTracking(True)
 
         self.lst_files.itemClicked.connect(self.list_item_clicked)

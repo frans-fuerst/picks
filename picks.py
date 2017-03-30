@@ -26,8 +26,6 @@ from PyQt5 import QtWidgets, QtGui, QtCore, uic
 import viewer_core
 
 LOG = logging.getLogger('picks')
-#STYLESHEET = 'darkorange.stylesheet'
-#STYLESHEET = 'qdarkstyle.qss'
 STYLESHEET = 'QTDark.stylesheet'
 APP_DIR = os.path.dirname(os.path.realpath(__file__))
 SELECTED_DIR_NAME = "SELECTED_PICKS"
@@ -171,9 +169,6 @@ class Picks(QtWidgets.QMainWindow):
             self.set_image(self.selected_filename())
         except AttributeError:
             pass
-
-    def void(self):
-        print('void')
 
     def keyPressEvent(self, event):
         try:

@@ -19,6 +19,8 @@ import os
 import signal
 import logging
 import shutil
+import ast
+import json
 from PyQt5 import QtWidgets, QtGui, QtCore, uic
 
 import viewer_core
@@ -30,7 +32,7 @@ STYLESHEET = 'QTDark.stylesheet'
 APP_DIR = os.path.dirname(os.path.realpath(__file__))
 SELECTED_DIR_NAME = "SELECTED_PICKS"
 DELETED_DIR_NAME = ".picks.deleted"
-
+CONFIG_FILE = os.path.expanduser('~/.picks/config')
 
 class Picks(QtWidgets.QMainWindow):
 
@@ -39,6 +41,8 @@ class Picks(QtWidgets.QMainWindow):
 
         uic.loadUi(os.path.join(APP_DIR, 'picks.ui'), self)
 
+        self._config = self._read_config(CONFIG_FILE)
+        self._set_config_value('index', 7)
         self.setMouseTracking(True)
 
         self.lst_files.itemClicked.connect(self.list_item_clicked)
@@ -54,6 +58,24 @@ class Picks(QtWidgets.QMainWindow):
         self.show()
 
         self.goto(0)
+
+    def _set_config_value(self, name: str, value) -> None:
+        self._config[name] = value
+        self._write_config(CONFIG_FILE, self._config)
+
+    @staticmethod
+    def _read_config(filename: str) -> dict:
+        try:
+            with open(filename) as f:
+                return ast.literal_eval(f.read())
+        except FileNotFoundError:
+            return {}
+
+    @staticmethod
+    def _write_config(filename: str, data: dict) -> None:
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        with open(filename, 'w') as f:
+            json.dump(data, f)
 
     def update_file_list(self):
         ''' '''

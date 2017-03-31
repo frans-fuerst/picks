@@ -27,15 +27,23 @@ Partly available
 * Nice look
     [x] dark theme style
 
+* Performance
+    [x] cache viewed files
+    [x] pre cache next file
+    [ ] use different exif library (mind Windows!)
+
 
 Not yet implemented
 -------------------
 
 * Modify tags stored in filename
+    [ ] read and write back a filename with date
+    [ ] ability to modify files tag list
+    [ ] ability to modify a list of files tags
+    [ ] ability to modify tags on command line
 
-* Performance
-    [ ] cache viewed files
-    [ ] pre cache files
+ * deployment
+    [ ] provide PIP package
 
 * Persistence
     [ ] store current filename (across sessions and list updates)
@@ -53,6 +61,8 @@ Not yet implemented
 
 * Open with..
 
+* Open from mobile (MTP)
+
 * show movies
 
 * directory navigation
@@ -67,3 +77,4 @@ Not yet implemented
 * Compare pictures
     [ ] in zoom mode
     [ ] with focus peaking
+

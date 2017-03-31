@@ -21,6 +21,7 @@ import logging
 import shutil
 import ast
 import json
+import time
 from PyQt5 import QtWidgets, QtGui, QtCore, uic
 
 import viewer_core
@@ -40,6 +41,7 @@ class Picks(QtWidgets.QMainWindow):
         uic.loadUi(os.path.join(APP_DIR, 'picks.ui'), self)
 
         self._config = self._read_config(CONFIG_FILE)
+        self._image_cache = {}
         self.setMouseTracking(True)
 
         self.frm_tags.setVisible(False)
@@ -90,7 +92,9 @@ class Picks(QtWidgets.QMainWindow):
             if p_lower not in f.lower():
                 continue
             self.lst_files.addItem(f)
-        self.goto(current_index)
+        # don't jump to last viewed image if none was selected
+        if current_index >= 0:
+            self.goto(current_index)
 
     def filter_changed(self, text):
         self.list_files()
@@ -111,6 +115,18 @@ class Picks(QtWidgets.QMainWindow):
         filename = self.selected_filename()
         print('show file %d: %s' % (self.selected_index(), filename))
         self.set_image(filename)
+        self.repaint()
+        QtCore.QMetaObject.invokeMethod(
+            self, "preload", QtCore.Qt.QueuedConnection)
+
+    @QtCore.pyqtSlot()
+    def preload(self):
+        try:
+            self.fetch_image_data(
+                self.lst_files.item(self.selected_index() + 1).text())
+        except AttributeError:
+            # ignore index overflow
+            pass
 
     def selected_filename(self) -> str:
         return self.lst_files.currentItem().text()
@@ -118,15 +134,35 @@ class Picks(QtWidgets.QMainWindow):
     def selected_index(self) -> int:
         return self.lst_files.currentRow()
 
+    def fetch_image_data(self, filename: str) -> list:
+        def load_image(filename: str) -> list:
+            t1 = time.time()
+            tags = viewer_core.get_tags(filename)
+            t2 = time.time()
+            pixmap = QtGui.QPixmap(filename)
+            t3 = time.time()
+            print('tot: %.2f tags: %.2f pic: %.2f' %
+                  (t3 - t1, t2 - t1, t3 - t2))
+            return [pixmap, tags]
+
+        def clean_cache():
+            pass
+
+        abs_file = os.path.abspath(filename)
+        if not abs_file in self._image_cache:
+            self._image_cache[abs_file] = load_image(filename)
+            self._image_cache[abs_file].append(0.0)
+
+        self._image_cache[abs_file][2] = time.time()
+
+        clean_cache()
+
+        return self._image_cache[abs_file][:2]
+
     def set_image(self, filename: str):
-        import time
+
+        pixmap, tags = self.fetch_image_data(filename)
         self.setWindowTitle('Picks - %s' % filename)
-        t1 = time.time()
-        tags = viewer_core.get_tags(filename)
-        t2 = time.time()
-        pixmap = QtGui.QPixmap(filename)
-        t3 = time.time()
-        print('%.2f %.2f %.2f' % (t3-t1, t2-t1, t3-t2))
         self.lbl_viewer.setPixmap(
             pixmap.transformed(
                 QtGui.QTransform().rotate(
@@ -159,10 +195,10 @@ class Picks(QtWidgets.QMainWindow):
 
     def toggle_fullscreen(self):
         if self.isFullScreen():
-            self.frm_filelist.setVisible(True)
-            self.le_directory.setVisible(True)
-            self.txt_filter.setEnabled(True)
-            self.showNormal()
+        self.frm_filelist.setVisible(True)
+        self.le_directory.setVisible(True)
+        self.txt_filter.setEnabled(True)
+        self.showNormal()
         else:
             self.frm_filelist.setVisible(False)
             self.le_directory.setVisible(False)

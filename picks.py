@@ -42,6 +42,8 @@ class Picks(QtWidgets.QMainWindow):
         self._config = self._read_config(CONFIG_FILE)
         self.setMouseTracking(True)
 
+        self.frm_tags.setVisible(False)
+
         self.lst_files.itemClicked.connect(self.list_item_clicked)
         self.txt_filter.textChanged.connect(self.filter_changed)
         self.lst_files.keyPressEvent = self.other_widgets_keypress_event
@@ -139,6 +141,9 @@ class Picks(QtWidgets.QMainWindow):
     def handle_signal(self, _: int) -> None:
         self.close()
 
+    def show_tag_dialog(self):
+        self.frm_tags.setVisible(not self.frm_tags.isVisible())
+
     def copy_current_file(self):
         os.makedirs(SELECTED_DIR_NAME, exist_ok=True)
         filename = self.selected_filename()
@@ -180,6 +185,7 @@ class Picks(QtWidgets.QMainWindow):
                 QtCore.Qt.Key_Delete:    self.delete_current_file,
                 # F8: link
                 # F9: move
+                QtCore.Qt.Key_T:         self.show_tag_dialog,
                 QtCore.Qt.Key_F11:       self.toggle_fullscreen,
                 QtCore.Qt.Key_Backspace: lambda: self.jump(-1),
                 QtCore.Qt.Key_Left:      lambda: self.jump(-1),

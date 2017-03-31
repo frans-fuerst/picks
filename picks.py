@@ -193,17 +193,27 @@ class Picks(QtWidgets.QMainWindow):
         shutil.move(filename, os.path.join(DELETED_DIR_NAME, filename))
         self.list_files()
 
-    def toggle_fullscreen(self):
-        if self.isFullScreen():
+    def enter_fullscreen(self):
+        self.frm_filelist.setVisible(False)
+        self.le_directory.setVisible(False)
+        self.txt_filter.setEnabled(False)
+        self.showFullScreen()
+
+    def leave_fullscreen(self):
         self.frm_filelist.setVisible(True)
         self.le_directory.setVisible(True)
         self.txt_filter.setEnabled(True)
         self.showNormal()
+
+    def escape(self):
+        if self.isFullScreen():
+            self.leave_fullscreen()
+
+    def toggle_fullscreen(self):
+        if self.isFullScreen():
+            self.leave_fullscreen()
         else:
-            self.frm_filelist.setVisible(False)
-            self.le_directory.setVisible(False)
-            self.txt_filter.setEnabled(False)
-            self.showFullScreen()
+            self.enter_fullscreen()
 
     def resizeEvent(self, event: QtGui.QResizeEvent):
         try:
@@ -223,6 +233,7 @@ class Picks(QtWidgets.QMainWindow):
                 # F9: move
                 QtCore.Qt.Key_T:         self.show_tag_dialog,
                 QtCore.Qt.Key_F11:       self.toggle_fullscreen,
+                QtCore.Qt.Key_Escape:    self.escape,
                 QtCore.Qt.Key_Backspace: lambda: self.jump(-1),
                 QtCore.Qt.Key_Left:      lambda: self.jump(-1),
                 QtCore.Qt.Key_Up:        lambda: self.jump(-1),

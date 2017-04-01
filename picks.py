@@ -1,16 +1,6 @@
 #!/usr/bin/env python3
 
 '''
-
-* research: copy file: from shutil import copyfile copyfile(src, dst)
-* research: exif dates
-* research: open directory dialog
-* restore layout after fullscreen
-* research qt dark theme style
-* research: capture key press / parent / handle
-
-* more sophisticated resizing:
-    http://stackoverflow.com/questions/21041941
 '''
 
 
@@ -42,6 +32,8 @@ class Picks(QtWidgets.QMainWindow):
 
         self._config = self._read_config(CONFIG_FILE)
         self._image_cache = {}
+
+        self.lbl_notification = QtWidgets.QLabel(self.lbl_viewer)
         self.setMouseTracking(True)
 
         self.frm_tags.setVisible(False)
@@ -183,15 +175,28 @@ class Picks(QtWidgets.QMainWindow):
     def copy_current_file(self):
         os.makedirs(SELECTED_DIR_NAME, exist_ok=True)
         filename = self.selected_filename()
-        LOG.info('copy file "%s" to "%s" folder' % (filename, SELECTED_DIR_NAME))
         shutil.copyfile(filename, os.path.join(SELECTED_DIR_NAME, filename))
+        self.show_notification('Added to selected pictures: %s' % filename)
+
+    def show_notification(self, msg: str):
+        LOG.info(msg)
+        self.lbl_notification.setText(msg)
+        new_width = self.lbl_notification.fontMetrics().width(msg) + 50
+        self.lbl_notification.setAlignment(QtCore.Qt.AlignCenter)
+        self.lbl_notification.setGeometry(
+            QtCore.QRect((self.lbl_viewer.width() - new_width) / 2,
+                         (self.lbl_viewer.height() - 50) / 2,
+                         new_width, 50))
+        self.lbl_notification.setVisible(True)
+        QtCore.QTimer.singleShot(
+            1500, lambda: self.lbl_notification.setVisible(False))
 
     def delete_current_file(self):
         os.makedirs(DELETED_DIR_NAME, exist_ok=True)
         filename = self.selected_filename()
-        LOG.info('remove "%s"' % filename)
         shutil.move(filename, os.path.join(DELETED_DIR_NAME, filename))
         self.list_files()
+        self.show_notification('Marked as deleted: %s' % filename)
 
     def enter_fullscreen(self):
         self.frm_filelist.setVisible(False)

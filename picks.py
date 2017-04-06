@@ -138,7 +138,11 @@ class Picks(QtWidgets.QMainWindow):
             return [pixmap, tags]
 
         def clean_cache():
-            pass
+            print(len(self._image_cache))
+            if len(self._image_cache) > 20:
+                self._image_cache = {}
+
+        clean_cache()
 
         abs_file = os.path.abspath(filename)
         if not abs_file in self._image_cache:
@@ -146,8 +150,6 @@ class Picks(QtWidgets.QMainWindow):
             self._image_cache[abs_file].append(0.0)
 
         self._image_cache[abs_file][2] = time.time()
-
-        clean_cache()
 
         return self._image_cache[abs_file][:2]
 

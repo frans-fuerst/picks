@@ -25,7 +25,7 @@ CONFIG_FILE = os.path.expanduser('~/.picks/config')
 
 class Picks(QtWidgets.QMainWindow):
 
-    def __init__(self):
+    def __init__(self, args: dict):
         super().__init__()
 
         uic.loadUi(os.path.join(APP_DIR, 'picks.ui'), self)
@@ -42,8 +42,7 @@ class Picks(QtWidgets.QMainWindow):
         self.txt_filter.textChanged.connect(self.filter_changed)
         self.lst_files.keyPressEvent = self.other_widgets_keypress_event
 
-        if len(sys.argv) > 1:
-            os.chdir(sys.argv[1])
+        os.chdir(args.directory)
 
         self.le_directory.setText(os.getcwd())
         self.list_files()
@@ -256,7 +255,7 @@ class Picks(QtWidgets.QMainWindow):
             print('unknown key', event.key())
 
 
-def main():
+def main(args: dict):
     logging.basicConfig(level=logging.INFO)
 
     LOG.info(sys.executable)
@@ -267,7 +266,7 @@ def main():
     with open(os.path.join(APP_DIR, STYLESHEET)) as f:
         app.setStyleSheet(f.read())
 
-    ex = Picks()
+    ex = Picks(args)
 
     for s in (signal.SIGABRT, signal.SIGINT, signal.SIGSEGV, signal.SIGTERM):
         signal.signal(s, lambda signal, frame: ex.handle_signal(signal))

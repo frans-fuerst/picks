@@ -114,9 +114,6 @@ def main():
     LOG.info(sys.executable)
     LOG.info('.'.join((str(e) for e in sys.version_info)))
 
-    if len(sys.argv) > 1:
-        os.chdir(sys.argv[1])
-
     test_filename_decomposer()
     test_filename_synthesizer()
 

@@ -108,12 +108,6 @@ def test_filename_synthesizer():
         'img_1234',
         '.jpg')))
 
-def read_orientation():
-    for f in list_pics():
-        o = get_orientation(get_tags(f))
-        if o not in (270, 0):
-            print(o, f)
-
 def main():
     logging.basicConfig(level=logging.INFO)
 

@@ -14,7 +14,7 @@ import json
 import time
 from PyQt5 import QtWidgets, QtGui, QtCore, uic
 
-import viewer_core
+import picks_core
 
 LOG = logging.getLogger('picks')
 STYLESHEET = 'QTDark.stylesheet'
@@ -80,7 +80,7 @@ class Picks(QtWidgets.QMainWindow):
         current_index = self.selected_index()
         self.lst_files.clear()
         p_lower = self.txt_filter.text().lower()
-        for f in viewer_core.list_pics():
+        for f in picks_core.list_pics():
             if p_lower not in f.lower():
                 continue
             self.lst_files.addItem(f)
@@ -129,7 +129,7 @@ class Picks(QtWidgets.QMainWindow):
     def fetch_image_data(self, filename: str) -> list:
         def load_image(filename: str) -> list:
             t1 = time.time()
-            tags = viewer_core.get_tags(filename)
+            tags = picks_core.get_tags(filename)
             t2 = time.time()
             pixmap = QtGui.QPixmap(filename)
             t3 = time.time()
@@ -160,7 +160,7 @@ class Picks(QtWidgets.QMainWindow):
         self.lbl_viewer.setPixmap(
             pixmap.transformed(
                 QtGui.QTransform().rotate(
-                    viewer_core.get_orientation(tags))).scaled(
+                    picks_core.get_orientation(tags))).scaled(
                         self.lbl_viewer.width(), self.lbl_viewer.height(),
                         QtCore.Qt.KeepAspectRatio))
         self.lbl_viewer.setMask(pixmap.mask())

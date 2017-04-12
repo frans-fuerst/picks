@@ -2,16 +2,59 @@
 
 import sys
 import os
-import signal
 import glob
 import logging
 import exifread
-from abc import ABCMeta, abstractmethod
-from PyQt5 import QtWidgets, QtGui, QtCore, uic
+import datetime
+from collections import namedtuple
 
 LOG = logging.getLogger('viewer_core')
 IMAGE_PATTERN = ('*.jpg', '*.jpeg', '*.png', '*.bmp')
+DATE_FORMAT = '%Y%m%d.%H%M%S'
+ALLOWED_TAG_CHARACTERS = 'abcdefghijklmnopqrstuvwxyz_'
 
+class CompFilename(namedtuple(
+    'CompFilename', ['date', 'tags', 'base', 'ext'])):
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__) and
+                self.date == other.date and
+                tuple(self.tags) == tuple(other.tags) and
+                self.base == other.base and
+                self.ext == other.ext)
+
+    @staticmethod
+    def from_str(composite: str):
+        ''' turns a filename into a tuple containing
+            a date, an origninal file basename and a list
+            of tags
+        '''
+        date = None
+        tags = []
+        new_base = []
+        base, ext = os.path.splitext(composite)
+        for c in base.split('-'):
+            if not date:
+                try:
+                    date = datetime.datetime.strptime(c, DATE_FORMAT)
+                    continue
+                except ValueError:
+                    pass
+            try:
+                tags += to_tags(c)
+                continue
+            except ValueError:
+                pass
+            new_base.append(c)
+        return CompFilename(date, tags, '.'.join(new_base), ext)
+
+    def __repr__(self) -> str:
+        return super().__repr__()
+
+    def __str__(self) -> str:
+        return '-'.join(x for x in (
+            self.date.strftime(DATE_FORMAT) if self.date else None,
+            self.base,
+            '.'.join(self.tags)) if x) + self.ext
 
 def list_pics() -> list:
     def insensitive_glob(pattern):
@@ -38,28 +81,32 @@ def get_orientation(tags: dict) -> int:
               orientation_tag.values[0])
         raise
 
-
 def get_tags(filename: str) -> dict:
     with open(filename, 'rb') as f:
         return exifread.process_file(f)
 
-def name_components(filename: str) -> tuple:
-    ''' turns a filename into a tuple containing
-        a date, a origninal file basename and a list
-        of tags
-    '''
-    return ('', []) + os.path.splitext(filename)
+def to_tags(tags: str) -> tuple:
+    for c in tags.lower().replace('.', ''):
+        if c not in ALLOWED_TAG_CHARACTERS:
+            raise ValueError('character not allowed: %s' % c)
+    return tags.split('.')
 
-def composite_filename(components: tuple) -> str:
-    return '-'.join(
-        e for e in (components[0],
-                    components[1],
-                    '.'.join(components[2])) if e)
+def test_filename_decomposer():
+    assert(
+        CompFilename(date='t', tags=[], base='img_123', ext='.jpg') ==
+        CompFilename(date='t', tags=(), base='img_123', ext='.jpg'))
+    print(CompFilename.from_str('img_1234.jpg'))
 
-def test_filename_composer():
-    print(name_components('img_1234.jpg'))
-    print(name_components('img_1234'))
-    print(name_components('20170330-img_1234'))
+    print(CompFilename.from_str('img_1234'))
+    print(CompFilename.from_str('20170330.172531-img_1234.png'))
+    print(CompFilename.from_str('20170330.172531-img_1234-tagA.tagB.png'))
+
+def test_filename_synthesizer():
+    print(str(CompFilename(
+        '20171116.213412',
+        ('tagA', 'tagB'),
+        'img_1234',
+        '.jpg')))
 
 def read_orientation():
     for f in list_pics():
@@ -76,7 +123,8 @@ def main():
     if len(sys.argv) > 1:
         os.chdir(sys.argv[1])
 
-    test_filename_composer()
+    test_filename_decomposer()
+    test_filename_synthesizer()
 
 if __name__ == '__main__':
     main()

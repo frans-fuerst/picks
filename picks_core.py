@@ -63,6 +63,13 @@ def list_pics() -> list:
         return glob.glob(''.join(map(either, pattern)))
     return sorted(sum([insensitive_glob(p) for p in IMAGE_PATTERN], []))
 
+def get_all_tags(filenames: list) -> set:
+    result = []
+    for f in filenames:
+        for t in CompFilename.from_str(f).tags:
+            if not t in result:
+                result.append(t)
+    return result
 
 def get_orientation(tags: dict) -> int:
     try:

@@ -72,6 +72,13 @@ class Picks(QtWidgets.QMainWindow):
     def update_file_list(self):
         ''' '''
 
+    def update_tag_list(self, filenames):
+        new_tags = self._config['tags'] if 'tags' in self._config else []
+        for t in picks_core.get_all_tags(filenames):
+            if not t in new_tags:
+                new_tags.append(t)
+        self._config['tags'] = new_tags
+
     def other_widgets_keypress_event(self, event):
         self.keyPressEvent(event)
 
@@ -79,7 +86,8 @@ class Picks(QtWidgets.QMainWindow):
         current_index = self.selected_index()
         self.lst_files.clear()
         p_lower = self.txt_filter.text().lower()
-        for f in picks_core.list_pics():
+        filenames = picks_core.list_pics()
+        for f in filenames:
             if p_lower not in f.lower():
                 continue
             self.lst_files.addItem(f)
@@ -215,6 +223,11 @@ class Picks(QtWidgets.QMainWindow):
         if self.isFullScreen():
             self.leave_fullscreen()
 
+    def new(self):
+        print(self.frm_tags.isVisible())
+        if self.frm_tags.isVisible():
+            print('new')
+
     def toggle_fullscreen(self):
         if self.isFullScreen():
             self.leave_fullscreen()
@@ -240,6 +253,7 @@ class Picks(QtWidgets.QMainWindow):
                 QtCore.Qt.Key_T:         self.show_tag_dialog,
                 QtCore.Qt.Key_F11:       self.toggle_fullscreen,
                 QtCore.Qt.Key_Escape:    self.escape,
+                QtCore.Qt.Key_N:         self.new,
                 QtCore.Qt.Key_Backspace: lambda: self.jump(-1),
                 QtCore.Qt.Key_Left:      lambda: self.jump(-1),
                 QtCore.Qt.Key_Up:        lambda: self.jump(-1),

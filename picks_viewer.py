@@ -101,6 +101,8 @@ class Picks(QtWidgets.QMainWindow):
             next_index)
 
     def goto(self, index: int):
+        if not self.lst_files.count():
+            return
         self.lst_files.setCurrentRow(
             self.lst_files.count() - 1 if index < 0 else index)
         filename = self.selected_filename()

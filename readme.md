@@ -36,6 +36,8 @@ Partly available
 Not yet implemented
 -------------------
 
+* MTP support
+
 * Modify tags stored in filename
     [ ] read and write back a filename with date
     [ ] ability to modify files tag list
@@ -78,3 +80,8 @@ Not yet implemented
     [ ] in zoom mode
     [ ] with focus peaking
 
+
+* research: open directory dialog
+
+* more sophisticated resizing:
+    http://stackoverflow.com/questions/21041941

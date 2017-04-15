@@ -23,6 +23,9 @@ def setup_filenames(args: dict):
     os.chdir(args.directory)
     for f in picks_core.list_pics():
         comp = picks_core.CompFilename.from_str(f)
+        if not comp.date:
+            comp.set_date(
+                picks_core.get_date(picks_core.get_tags(f)))
         synth = str(comp)
         print('%s %s, %s, %r' % ('! ' if f != synth else '  ', f, synth, comp) )
 

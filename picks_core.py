@@ -71,6 +71,14 @@ def get_all_tags(filenames: list) -> set:
                 result.append(t)
     return result
 
+def is_valid_tag(name: str) -> bool:
+    if len(name) < 3:
+        return False
+    for c in name:
+        if not c in ALLOWED_TAG_CHARACTERS:
+            return False
+    return True
+
 def get_orientation(tags: dict) -> int:
     try:
         orientation_tag = tags['Image Orientation']

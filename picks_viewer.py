@@ -31,6 +31,8 @@ class Picks(QtWidgets.QMainWindow):
         uic.loadUi(os.path.join(APP_DIR, 'picks.ui'), self)
 
         self._config = self._read_config(CONFIG_FILE)
+        if not 'tags' in self._config:
+            self._config['tags'] = []
         self._image_cache = {}
 
         self.lbl_notification = QtWidgets.QLabel(self.lbl_viewer)
@@ -40,6 +42,9 @@ class Picks(QtWidgets.QMainWindow):
 
         self.lst_files.itemClicked.connect(self.list_item_clicked)
         self.txt_filter.textChanged.connect(self.filter_changed)
+        self.txt_tag_filter.textChanged.connect(self.tag_filter_changed)
+        self.txt_tag_filter.returnPressed.connect(self.tag_filter_return_pressed)
+
         self.lst_files.keyPressEvent = self.other_widgets_keypress_event
 
         os.chdir(args.directory)
@@ -163,7 +168,6 @@ class Picks(QtWidgets.QMainWindow):
         return self._image_cache[abs_file][:2]
 
     def set_image(self, filename: str):
-
         pixmap, tags = self.fetch_image_data(filename)
         self.setWindowTitle('Picks - %s' % filename)
         self.lbl_viewer.setPixmap(
@@ -174,6 +178,31 @@ class Picks(QtWidgets.QMainWindow):
                         QtCore.Qt.KeepAspectRatio))
         self.lbl_viewer.setMask(pixmap.mask())
 
+    def tag_filter_changed(self, text):
+        self.lst_tags.clear()
+        for t in self._config['tags']:
+            if text in t:
+                self.lst_tags.addItem(t)
+
+    def tag_filter_return_pressed(self):
+        # todo: restrict allowed characters in lineEdit
+        #QGuiApplication.queryKeyboardModifiers().testFlag(Qt::ShiftModifier))
+        if QtWidgets.QApplication.queryKeyboardModifiers() == QtCore.Qt.ShiftModifier:
+            tag = self.txt_tag_filter.text().lower()
+            if not picks_core.is_valid_tag(tag) or tag in self._config['tags']:
+                return
+            print('add tag "%s"' % tag)
+            self._config['tags'].append(tag)
+            self.txt_tag_filter.setText('')
+            self._write_config(CONFIG_FILE, self._config)
+        else:
+            if self.lst_tags.count() == 1:
+                self.apply_tag_to_current_file(self.lst_tags.item(0).text())
+                self.txt_tag_filter.setText('')
+
+    def apply_tag_to_current_file(self, tag: str):
+        print('apply tag', tag)
+
     def mouseReleaseEvent(self, event):
         pass
 
@@ -182,6 +211,9 @@ class Picks(QtWidgets.QMainWindow):
 
     def show_tag_dialog(self):
         self.frm_tags.setVisible(not self.frm_tags.isVisible())
+        if self.frm_tags.isVisible():
+            self.tag_filter_changed('')
+            self.txt_tag_filter.setFocus()
 
     def copy_current_file(self):
         os.makedirs(SELECTED_DIR_NAME, exist_ok=True)
@@ -222,13 +254,10 @@ class Picks(QtWidgets.QMainWindow):
         self.showNormal()
 
     def escape(self):
-        if self.isFullScreen():
-            self.leave_fullscreen()
-
-    def new(self):
-        print(self.frm_tags.isVisible())
         if self.frm_tags.isVisible():
-            print('new')
+            self.frm_tags.setVisible(False)
+        elif self.isFullScreen():
+            self.leave_fullscreen()
 
     def toggle_fullscreen(self):
         if self.isFullScreen():
@@ -255,7 +284,6 @@ class Picks(QtWidgets.QMainWindow):
                 QtCore.Qt.Key_T:         self.show_tag_dialog,
                 QtCore.Qt.Key_F11:       self.toggle_fullscreen,
                 QtCore.Qt.Key_Escape:    self.escape,
-                QtCore.Qt.Key_N:         self.new,
                 QtCore.Qt.Key_Backspace: lambda: self.jump(-1),
                 QtCore.Qt.Key_Left:      lambda: self.jump(-1),
                 QtCore.Qt.Key_Up:        lambda: self.jump(-1),
@@ -266,6 +294,7 @@ class Picks(QtWidgets.QMainWindow):
                 QtCore.Qt.Key_PageDown:  lambda: self.jump(10),
                 QtCore.Qt.Key_Home:      lambda: self.goto(0),
                 QtCore.Qt.Key_End:       lambda: self.goto(-1),
+                QtCore.Qt.Key_Return:    lambda: None,
              }[event.key()]()
         except KeyError:
             print('unknown key', event.key())

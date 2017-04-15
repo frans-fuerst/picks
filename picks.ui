@@ -82,14 +82,14 @@
             <number>0</number>
            </property>
            <item>
-            <widget class="QListWidget" name="lst_files_2">
+            <widget class="QListWidget" name="lst_tags">
              <property name="editTriggers">
               <set>QAbstractItemView::NoEditTriggers</set>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QLineEdit" name="txt_new_tag"/>
+            <widget class="QLineEdit" name="txt_tag_filter"/>
            </item>
           </layout>
          </widget>

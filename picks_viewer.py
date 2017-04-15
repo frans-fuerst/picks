@@ -186,7 +186,6 @@ class Picks(QtWidgets.QMainWindow):
 
     def tag_filter_return_pressed(self):
         # todo: restrict allowed characters in lineEdit
-        #QGuiApplication.queryKeyboardModifiers().testFlag(Qt::ShiftModifier))
         if QtWidgets.QApplication.queryKeyboardModifiers() == QtCore.Qt.ShiftModifier:
             tag = self.txt_tag_filter.text().lower()
             if not picks_core.is_valid_tag(tag) or tag in self._config['tags']:
@@ -201,7 +200,9 @@ class Picks(QtWidgets.QMainWindow):
                 self.txt_tag_filter.setText('')
 
     def apply_tag_to_current_file(self, tag: str):
-        print('apply tag', tag)
+        picks_core.add_tag_to_file(self.selected_filename(), tag)
+        self.show_notification('Added tag: %s' % tag)
+        self.list_files()
 
     def mouseReleaseEvent(self, event):
         pass

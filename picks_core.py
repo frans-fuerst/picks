@@ -47,6 +47,14 @@ class CompFilename(namedtuple(
             new_base.append(c)
         return CompFilename(date, tags, '.'.join(new_base), ext)
 
+    def init_date(self):
+        return self
+
+    def add_tag(self, tag: str):
+        if tag not in self.tags:
+            self.tags.append(tag)
+        return self
+
     def __repr__(self) -> str:
         return super().__repr__()
 
@@ -70,6 +78,13 @@ def get_all_tags(filenames: list) -> set:
             if not t in result:
                 result.append(t)
     return result
+
+def add_tag_to_file(filename: str, tag: str) -> str:
+    new_name = str(CompFilename.from_str(filename).init_date().add_tag(tag))
+    os.rename(
+        filename,
+        new_name)
+    return new_name
 
 def is_valid_tag(name: str) -> bool:
     if len(name) < 3:

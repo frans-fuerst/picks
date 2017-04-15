@@ -88,7 +88,8 @@ class Picks(QtWidgets.QMainWindow):
         self.keyPressEvent(event)
 
     def list_files(self):
-        current_index = self.selected_index()
+        current_filename = self.selected_filename()
+        current_index = 0
         self.lst_files.clear()
         p_lower = self.txt_file_filter.text().lower()
         filenames = picks_core.list_pics()
@@ -96,9 +97,10 @@ class Picks(QtWidgets.QMainWindow):
             if p_lower not in f.lower():
                 continue
             self.lst_files.addItem(f)
-        # don't jump to last viewed image if none was selected
-        if current_index >= 0:
-            self.goto(current_index)
+            if f == current_filename:
+                current_filename = self.lst_files.count()
+
+        self.goto(current_index)
 
     def filter_changed(self, text):
         self.list_files()
@@ -116,10 +118,11 @@ class Picks(QtWidgets.QMainWindow):
     def goto(self, index: int):
         if not self.lst_files.count():
             return
+        i =  self.lst_files.count() - 1 if index < 0 else index
         self.lst_files.setCurrentRow(
             self.lst_files.count() - 1 if index < 0 else index)
         filename = self.selected_filename()
-        print('show file %d: %s' % (self.selected_index(), filename))
+        LOG.info('show file %d: %s' % (self.selected_index(), filename))
         self.set_image(filename)
         self.repaint()
         QtCore.QMetaObject.invokeMethod(
@@ -135,7 +138,10 @@ class Picks(QtWidgets.QMainWindow):
             pass
 
     def selected_filename(self) -> str:
-        return self.lst_files.currentItem().text()
+        try:
+            return self.lst_files.currentItem().text()
+        except AttributeError:
+            return None
 
     def selected_index(self) -> int:
         return self.lst_files.currentRow()
@@ -147,12 +153,11 @@ class Picks(QtWidgets.QMainWindow):
             t2 = time.time()
             pixmap = QtGui.QPixmap(filename)
             t3 = time.time()
-            print('tot: %.2f tags: %.2f pic: %.2f' %
-                  (t3 - t1, t2 - t1, t3 - t2))
+            LOG.info('tot: %.2f tags: %.2f pic: %.2f',
+                     t3 - t1, t2 - t1, t3 - t2)
             return [pixmap, tags]
 
         def clean_cache():
-            print(len(self._image_cache))
             if len(self._image_cache) > 20:
                 self._image_cache = {}
 
@@ -190,7 +195,7 @@ class Picks(QtWidgets.QMainWindow):
             tag = self.txt_tag_filter.text().lower()
             if not picks_core.is_valid_tag(tag) or tag in self._config['tags']:
                 return
-            print('add tag "%s"' % tag)
+            self.show_notification('added new tag "%s"' % tag)
             self._config['tags'].append(tag)
             self.txt_tag_filter.setText('')
             self._write_config(CONFIG_FILE, self._config)
@@ -307,7 +312,7 @@ class Picks(QtWidgets.QMainWindow):
                 QtCore.Qt.Key_Return:    lambda: None,
              }[event.key()]()
         except KeyError:
-            print('unknown key', event.key())
+            LOG.warning('unknown key %d', event.key())
 
 
 def main(args: dict):

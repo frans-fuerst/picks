@@ -41,7 +41,7 @@ class Picks(QtWidgets.QMainWindow):
         self.frm_tags.setVisible(False)
 
         self.lst_files.itemClicked.connect(self.list_item_clicked)
-        self.txt_filter.textChanged.connect(self.filter_changed)
+        self.txt_file_filter.textChanged.connect(self.filter_changed)
         self.txt_tag_filter.textChanged.connect(self.tag_filter_changed)
         self.txt_tag_filter.returnPressed.connect(self.tag_filter_return_pressed)
 
@@ -90,7 +90,7 @@ class Picks(QtWidgets.QMainWindow):
     def list_files(self):
         current_index = self.selected_index()
         self.lst_files.clear()
-        p_lower = self.txt_filter.text().lower()
+        p_lower = self.txt_file_filter.text().lower()
         filenames = picks_core.list_pics()
         for f in filenames:
             if p_lower not in f.lower():
@@ -210,12 +210,6 @@ class Picks(QtWidgets.QMainWindow):
     def handle_signal(self, _: int) -> None:
         self.close()
 
-    def show_tag_dialog(self):
-        self.frm_tags.setVisible(not self.frm_tags.isVisible())
-        if self.frm_tags.isVisible():
-            self.tag_filter_changed('')
-            self.txt_tag_filter.setFocus()
-
     def copy_current_file(self):
         os.makedirs(SELECTED_DIR_NAME, exist_ok=True)
         filename = self.selected_filename()
@@ -242,29 +236,44 @@ class Picks(QtWidgets.QMainWindow):
         self.list_files()
         self.show_notification('Marked as deleted: %s' % filename)
 
-    def enter_fullscreen(self):
-        self.frm_filelist.setVisible(False)
-        self.le_directory.setVisible(False)
-        self.txt_filter.setEnabled(False)
-        self.showFullScreen()
+    def toggle_tag_dialog(self):
+        if not self.frm_tags.isVisible():
+            self.enter_tag_dialog()
+        else:
+            self.leave_tag_dialog()
 
-    def leave_fullscreen(self):
-        self.frm_filelist.setVisible(True)
-        self.le_directory.setVisible(True)
-        self.txt_filter.setEnabled(True)
-        self.showNormal()
+    def enter_tag_dialog(self):
+        self.frm_tags.setVisible(True)
+        self.tag_filter_changed('')
+        self.txt_tag_filter.setFocus()
 
-    def escape(self):
-        if self.frm_tags.isVisible():
-            self.frm_tags.setVisible(False)
-        elif self.isFullScreen():
-            self.leave_fullscreen()
+    def leave_tag_dialog(self):
+        self.frm_tags.setVisible(False)
+        self.txt_file_filter.setFocus()
 
     def toggle_fullscreen(self):
         if self.isFullScreen():
             self.leave_fullscreen()
         else:
             self.enter_fullscreen()
+
+    def enter_fullscreen(self):
+        self.frm_filelist.setVisible(False)
+        self.le_directory.setVisible(False)
+        self.txt_file_filter.setEnabled(False)
+        self.showFullScreen()
+
+    def leave_fullscreen(self):
+        self.frm_filelist.setVisible(True)
+        self.le_directory.setVisible(True)
+        self.txt_file_filter.setEnabled(True)
+        self.showNormal()
+
+    def escape(self):
+        if self.frm_tags.isVisible():
+            self.leave_tag_dialog()
+        elif self.isFullScreen():
+            self.leave_fullscreen()
 
     def resizeEvent(self, event: QtGui.QResizeEvent):
         try:
@@ -282,7 +291,7 @@ class Picks(QtWidgets.QMainWindow):
                 QtCore.Qt.Key_Delete:    self.delete_current_file,
                 # F8: link
                 # F9: move
-                QtCore.Qt.Key_T:         self.show_tag_dialog,
+                QtCore.Qt.Key_T:         self.toggle_tag_dialog,
                 QtCore.Qt.Key_F11:       self.toggle_fullscreen,
                 QtCore.Qt.Key_Escape:    self.escape,
                 QtCore.Qt.Key_Backspace: lambda: self.jump(-1),

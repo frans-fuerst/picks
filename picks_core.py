@@ -6,15 +6,20 @@ import glob
 import logging
 import exifread
 import datetime
-from collections import namedtuple
+import types
 
 LOG = logging.getLogger('viewer_core')
 IMAGE_PATTERN = ('*.jpg', '*.jpeg', '*.png', '*.bmp')
 DATE_FORMAT = '%Y%m%d.%H%M%S'
 ALLOWED_TAG_CHARACTERS = 'abcdefghijklmnopqrstuvwxyz_'
 
-class CompFilename(namedtuple(
-    'CompFilename', ['date', 'tags', 'base', 'ext'])):
+class CompFilename(types.SimpleNamespace):
+    def __init__(self, date, tags, base, ext):
+        self.date = date
+        self.tags = tags
+        self.base = base
+        self.ext = ext
+
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and
                 self.date == other.date and
@@ -47,7 +52,8 @@ class CompFilename(namedtuple(
             new_base.append(c)
         return CompFilename(date, tags, '.'.join(new_base), ext)
 
-    def init_date(self):
+    def set_date(self, date):
+        self.date = date
         return self
 
     def add_tag(self, tag: str):
@@ -80,11 +86,9 @@ def get_all_tags(filenames: list) -> set:
     return result
 
 def add_tag_to_file(filename: str, tag: str) -> str:
-    new_name = str(CompFilename.from_str(filename).init_date().add_tag(tag))
-    os.rename(
-        filename,
-        new_name)
-    return new_name
+    new_filename = str(CompFilename.from_str(filename).add_tag(tag))
+    os.rename(filename, new_filename)
+    return new_filename
 
 def is_valid_tag(name: str) -> bool:
     if len(name) < 3:
@@ -93,6 +97,13 @@ def is_valid_tag(name: str) -> bool:
         if not c in ALLOWED_TAG_CHARACTERS:
             return False
     return True
+
+def get_date(tags: dict) -> datetime.datetime:
+    try:
+        date_tag = tags['EXIF DateTimeOriginal']
+    except KeyError:
+        return None
+    return datetime.datetime.strptime(date_tag.values, '%Y:%m:%d %H:%M:%S')
 
 def get_orientation(tags: dict) -> int:
     try:

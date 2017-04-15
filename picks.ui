@@ -58,7 +58,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QLineEdit" name="txt_filter"/>
+            <widget class="QLineEdit" name="txt_file_filter"/>
            </item>
           </layout>
          </widget>

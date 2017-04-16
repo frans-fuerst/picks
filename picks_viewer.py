@@ -50,6 +50,7 @@ class Picks(QtWidgets.QMainWindow):
         os.chdir(args.directory)
 
         self.le_directory.setText(os.getcwd())
+        self.update_tag_list(picks_core.list_pics())
         self.list_files()
 
         self.show()
@@ -279,6 +280,8 @@ class Picks(QtWidgets.QMainWindow):
             self.leave_tag_dialog()
         elif self.isFullScreen():
             self.leave_fullscreen()
+        else:
+            self.lst_files.setFocus()
 
     def resizeEvent(self, event: QtGui.QResizeEvent):
         try:
@@ -297,6 +300,7 @@ class Picks(QtWidgets.QMainWindow):
                 # F8: link
                 # F9: move
                 QtCore.Qt.Key_T:         self.toggle_tag_dialog,
+                QtCore.Qt.Key_F:         lambda: self.txt_file_filter.setFocus(),
                 QtCore.Qt.Key_F11:       self.toggle_fullscreen,
                 QtCore.Qt.Key_Escape:    self.escape,
                 QtCore.Qt.Key_Backspace: lambda: self.jump(-1),

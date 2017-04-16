@@ -28,6 +28,7 @@ def setup_filenames(args: dict):
                 picks_core.get_date(picks_core.get_tags(f)))
         synth = str(comp)
         print('%s %s, %s, %r' % ('! ' if f != synth else '  ', f, synth, comp) )
+        os.rename(f, synth)
 
 
 def main():
@@ -46,7 +47,7 @@ def main():
 
     if args.initialize:
         setup_filenames(args)
-    if args.info:
+    elif args.info:
         print_info(args)
     else:
         run_viewer(args)

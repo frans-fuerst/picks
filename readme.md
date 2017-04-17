@@ -4,20 +4,20 @@ Picks - View, pick and tag pictures
 Despite there are lot's and lot's of file viewers out there none of them
 satisfied a couple of requirements which are important for me:
 
-- support for 'interesting file separation' (by copying/linking a file to a
-  special folder while viewing)
-- file tagging without a proprietary database (best would be tagging in the
+- support for 'interesting file separation' (by **copying/linking a file**
+  to a special folder while viewing)
+- **file tagging** without a proprietary database (best would be tagging in the
   filename because this is intuitive and platform/tool independent)
-- sexy slide show mode (e.g. with Ken Burns effect (pan/zoom))
-- support at least for Linux
+- sexy **slide show** mode (e.g. with Ken Burns effect (pan/zoom))
+- support at least for **Linux**
 
 This is why `picks` (play on the words *picture* and *pick*) emerged. Among
 the features already mentioned the project goals are:
 
-- easy deployment/usage on at least Linux/MacOS/Windows
-- easy interaction without the need to use a mouse
-- support for reading from attached smart phones (MTP support)
-- tools for deciding whether to keep or delete a file (focus peaking, etc.)
+- easy **deployment/usage** on at least Linux/MacOS/Windows
+- **easy interaction** without the need to use a mouse
+- support for reading from attached **smart phones** (MTP support)
+- tools for deciding whether to **keep or delete** a file (focus peaking, etc.)
 
 
 Installation / Usage
@@ -64,6 +64,7 @@ Partly available
 
 * Nice look
     - [x] dark theme style
+    - [ ] icon
 
 * Performance
     - [x] cache viewed files

@@ -4,17 +4,19 @@ import sys
 import os
 import glob
 import logging
-import exifread
-import datetime
 import types
+import datetime
+import exifread
 
 LOG = logging.getLogger('viewer_core')
 IMAGE_PATTERN = ('*.jpg', '*.jpeg', '*.png', '*.bmp')
 DATE_FORMAT = '%Y%m%d.%H%M%S'
 ALLOWED_TAG_CHARACTERS = 'abcdefghijklmnopqrstuvwxyz_'
 
+
 class CompFilename(types.SimpleNamespace):
     def __init__(self, date, tags, base, ext):
+        super().__init__()
         self.date = date
         self.tags = tags
         self.base = base
@@ -22,7 +24,7 @@ class CompFilename(types.SimpleNamespace):
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and
-                self.date == other.date and
+                self._date == other._date and
                 tuple(self.tags) == tuple(other.tags) and
                 self.base == other.base and
                 self.ext == other.ext)
@@ -52,9 +54,16 @@ class CompFilename(types.SimpleNamespace):
             new_base.append(c)
         return CompFilename(date, tags, '.'.join(new_base), ext)
 
-    def set_date(self, date):
-        self.date = date
-        return self
+    @property
+    def date(self):
+        return self._date
+
+    @date.setter
+    def date(self, value):
+        self._date = (
+            value if value is None or
+            isinstance(value, datetime.datetime) else
+            datetime.datetime.strptime(value, DATE_FORMAT))
 
     def add_tag(self, tag: str):
         if tag not in self.tags:
@@ -66,16 +75,18 @@ class CompFilename(types.SimpleNamespace):
 
     def __str__(self) -> str:
         return '-'.join(x for x in (
-            self.date.strftime(DATE_FORMAT) if self.date else None,
+            self._date.strftime(DATE_FORMAT) if self._date else None,
             self.base,
             '.'.join(self.tags)) if x) + self.ext
+
 
 def list_pics() -> list:
     def insensitive_glob(pattern):
         def either(c):
-            return '[%s%s]'%(c.lower(),c.upper()) if c.isalpha() else c
+            return '[%s%s]' % (c.lower(), c.upper()) if c.isalpha() else c
         return glob.glob(''.join(map(either, pattern)))
     return sorted(sum([insensitive_glob(p) for p in IMAGE_PATTERN], []))
+
 
 def get_all_tags(filenames: list) -> set:
     result = []
@@ -85,10 +96,12 @@ def get_all_tags(filenames: list) -> set:
                 result.append(t)
     return result
 
+
 def add_tag_to_file(filename: str, tag: str) -> str:
     new_filename = str(CompFilename.from_str(filename).add_tag(tag))
     os.rename(filename, new_filename)
     return new_filename
+
 
 def is_valid_tag(name: str) -> bool:
     if len(name) < 3:
@@ -98,12 +111,14 @@ def is_valid_tag(name: str) -> bool:
             return False
     return True
 
+
 def get_date(tags: dict) -> datetime.datetime:
     try:
         date_tag = tags['EXIF DateTimeOriginal']
     except KeyError:
         return None
     return datetime.datetime.strptime(date_tag.values, '%Y:%m:%d %H:%M:%S')
+
 
 def get_orientation(tags: dict) -> int:
     try:
@@ -116,15 +131,17 @@ def get_orientation(tags: dict) -> int:
         return {1: 0,
                 6: 90,
                 8: 270,
-                }[orientation_tag.values[0]]
+               }[orientation_tag.values[0]]
     except KeyError:
         print('orientation: cannot handle value %d' %
               orientation_tag.values[0])
         raise
 
+
 def get_tags(filename: str) -> dict:
     with open(filename, 'rb') as f:
         return exifread.process_file(f)
+
 
 def to_tags(tags: str) -> tuple:
     for c in tags.lower().replace('.', ''):
@@ -132,15 +149,17 @@ def to_tags(tags: str) -> tuple:
             raise ValueError('character not allowed: %s' % c)
     return tags.split('.')
 
+
 def test_filename_decomposer():
     assert(
-        CompFilename(date='t', tags=[], base='img_123', ext='.jpg') ==
-        CompFilename(date='t', tags=(), base='img_123', ext='.jpg'))
+        CompFilename(date='20170330.172531', tags=[], base='img_123', ext='.jpg') ==
+        CompFilename(date='20170330.172531', tags=(), base='img_123', ext='.jpg'))
     print(CompFilename.from_str('img_1234.jpg'))
 
     print(CompFilename.from_str('img_1234'))
     print(CompFilename.from_str('20170330.172531-img_1234.png'))
     print(CompFilename.from_str('20170330.172531-img_1234-tagA.tagB.png'))
+
 
 def test_filename_synthesizer():
     print(str(CompFilename(
@@ -148,6 +167,7 @@ def test_filename_synthesizer():
         ('tagA', 'tagB'),
         'img_1234',
         '.jpg')))
+
 
 def main():
     logging.basicConfig(level=logging.INFO)
@@ -158,6 +178,6 @@ def main():
     test_filename_decomposer()
     test_filename_synthesizer()
 
+
 if __name__ == '__main__':
     main()
-

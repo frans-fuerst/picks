@@ -14,20 +14,21 @@ def run_viewer(args: dict):
     import picks_viewer
     picks_viewer.main(args)
 
+
 def print_info(args: dict):
     for f in picks_core.list_pics():
-        o = picks_core.get_orientation(picks_core.get_tags(f))
-        print(o, f)
+        orientation = picks_core.get_orientation(picks_core.get_tags(f))
+        print(orientation, f)
+
 
 def setup_filenames(args: dict):
     os.chdir(args.directory)
     for f in picks_core.list_pics():
         comp = picks_core.CompFilename.from_str(f)
         if not comp.date:
-            comp.set_date(
-                picks_core.get_date(picks_core.get_tags(f)))
+            comp.date = picks_core.get_date(picks_core.get_tags(f))
         synth = str(comp)
-        print('%s %s, %s, %r' % ('! ' if f != synth else '  ', f, synth, comp) )
+        print('%s %s, %s, %r' % ('! ' if f != synth else '  ', f, synth, comp))
         os.rename(f, synth)
 
 
@@ -55,4 +56,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

@@ -3,7 +3,6 @@
 '''
 '''
 
-
 import sys
 import os
 import signal
@@ -22,6 +21,7 @@ APP_DIR = os.path.dirname(os.path.realpath(__file__))
 SELECTED_DIR_NAME = "SELECTED_PICKS"
 DELETED_DIR_NAME = ".picks.deleted"
 CONFIG_FILE = os.path.expanduser('~/.picks/config')
+
 
 class Picks(QtWidgets.QMainWindow):
 
@@ -181,7 +181,9 @@ class Picks(QtWidgets.QMainWindow):
                 QtGui.QTransform().rotate(
                     picks_core.get_orientation(tags))).scaled(
                         self.lbl_viewer.width(), self.lbl_viewer.height(),
-                        QtCore.Qt.KeepAspectRatio))
+                        QtCore.Qt.KeepAspectRatio,
+                        QtCore.Qt.SmoothTransformation
+                    ))
         self.lbl_viewer.setMask(pixmap.mask())
 
     def tag_filter_changed(self, text):

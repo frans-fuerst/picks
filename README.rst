@@ -23,7 +23,9 @@ the features already mentioned the project goals are:
 Installation / Usage
 --------------------
 
-`TBD`
+Recommended way to install picks is via **pip**::
+
+    pip3 install picks
 
 
 Partly available

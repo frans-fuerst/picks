@@ -14,7 +14,7 @@ here = path.abspath(path.dirname(__file__))
 # Get the long description from the README file
 with open(path.join(here, 'readme.md'), encoding='utf-8') as f:
     long_description = f.read()
-print(find_packages(exclude=['contrib', 'docs', 'tests']))
+
 setup(
     name='picks',
 
@@ -51,18 +51,14 @@ setup(
         # Pick your license as you wish (should match "license" above)
 #        'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ],
 
-    # What does your project relate to?
     keywords='picks image picture viewer choose pick tagging slideshow gallery',
 
-    # You can just specify the packages manually here if your project is
-    # simple. Or you can use find_packages().
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
-
-    # Alternatively, if you want to distribute just a my_module.py, uncomment
-    # this:
-#    py_modules=['picks_core', 'picks_viewer'],
 
     scripts = ['picks'],
 
@@ -87,20 +83,5 @@ setup(
     package_data={
         'picks_viewer': ['QTDark.stylesheet', 'picks.ui'],
     },
-
-    # Although 'package_data' is the preferred approach, in some case you may
-    # need to place data files outside of your packages. See:
-    # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files # noqa
-    # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
-#    data_files=[('my_data', ['data/data_file'])],
-
-    # To provide executable scripts, use entry points in preference to the
-    # "scripts" keyword. Entry points provide cross-platform support and allow
-    # pip to create the appropriate form of executable for the target platform.
-#    entry_points={
-#        'console_scripts': [
-#            'sample=sample:main',
-#        ],
-#    },
 )
 

@@ -5,8 +5,10 @@
 ##################################################################
 [project attributes]
 proj.directory-list = [{'dirloc': loc('.'),
-                        'excludes': (),
-                        'filter': u'*',
+                        'excludes': [u'picks.egg-info',
+                                     u'dist',
+                                     u'build'],
+                        'filter': '*',
                         'include_hidden': False,
                         'recursive': True,
                         'watch_for_changes': True}]
@@ -14,9 +16,13 @@ proj.file-type = 'shared'
 proj.launch-config = {loc('auto_mate.py'): ('project',
         (u'~/_melburn_2017/146___03',
          '')),
+                      loc('picks'): ('project',
+                                     (u'/run/media/frans/pics/_pictures/_SORTED/2015.12.12-2016.06.27-himmel-isar_elmar_hanna_michi/IMG_0336.JPG',
+                                      '')),
                       loc('picks.py'): ('project',
         (u'~/_HOME',
          '')),
                       loc('viewer.py'): ('project',
         (u'~/_melburn_2017/146___03',
          ''))}
+proj.main-file = loc('picks')

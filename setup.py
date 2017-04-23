@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-''' 
+'''
 '''
 
 # Always prefer setuptools over distutils
@@ -21,7 +21,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.6.2',
+    version='0.6.3',
 
     description='A picture viewer, tagger and picker',
     long_description=long_description,

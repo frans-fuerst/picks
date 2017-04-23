@@ -47,7 +47,12 @@ class Picks(QtWidgets.QMainWindow):
 
         self.lst_files.keyPressEvent = self.other_widgets_keypress_event
 
-        os.chdir(args.directory)
+        if os.path.isfile(args.directory):
+            filename = os.path.basename(args.directory)
+            os.chdir(os.path.dirname(args.directory))
+        else:
+            filename = None
+            os.chdir(args.directory)
 
         self.le_directory.setText(os.getcwd())
         self.update_tag_list(picks_core.list_pics())
@@ -55,7 +60,7 @@ class Picks(QtWidgets.QMainWindow):
 
         self.show()
 
-        self.goto(0)
+        self.goto(self.get_index(filename))
 
     def _set_config_value(self, name: str, value) -> None:
         self._config[name] = value
@@ -146,6 +151,12 @@ class Picks(QtWidgets.QMainWindow):
 
     def selected_index(self) -> int:
         return self.lst_files.currentRow()
+
+    def get_index(self, filename: str) -> int:
+        for i in range(self.lst_files.count()):
+            if self.lst_files.item(i).text() == filename:
+                return i
+        return 0
 
     def fetch_image_data(self, filename: str) -> list:
         def load_image(filename: str) -> list:

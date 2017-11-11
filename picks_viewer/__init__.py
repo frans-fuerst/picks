@@ -76,8 +76,9 @@ class Picks(QtWidgets.QMainWindow):
             filename = os.path.basename(args.directory)
             os.chdir(os.path.dirname(args.directory))
         else:
-            filename = None
-            os.chdir(args.directory)
+            directory = os.path.abspath(args.directory)
+            filename = self._config.setdefault('recent_files', {}).setdefault(directory, None)
+            os.chdir(directory)
 
         self.le_directory.setText(os.getcwd())
         self.update_tag_list(picks_core.list_pics())
@@ -87,8 +88,20 @@ class Picks(QtWidgets.QMainWindow):
 
         self.goto(self.get_index(filename))
 
-    def _set_config_value(self, name: str, value) -> None:
-        self._config[name] = value
+    def _set_config_value(self, key, value) -> None:
+        if isinstance(key, str):
+            *path, name = key.split('/')
+        elif isinstance(key, tuple):
+            *path, name = key
+
+        subtree = self._config
+        for e in path:
+            if not e in subtree:
+                subtree[e] = {}
+            subtree = subtree[e]
+
+        subtree[name] = value
+
         self._write_config(CONFIG_FILE, self._config)
 
     @staticmethod
@@ -227,6 +240,7 @@ class Picks(QtWidgets.QMainWindow):
             QtCore.Qt.SmoothTransformation
         ))
         self.lbl_viewer.setMask(pixmap.mask())
+        self._set_config_value(('recent_files', os.getcwd()), filename)
 
     def tag_filter_changed(self, text):
         self.lst_tags.clear()

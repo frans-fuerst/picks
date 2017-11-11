@@ -18,7 +18,7 @@ import picks_core
 LOG = logging.getLogger('picks')
 STYLESHEET = 'QTDark.stylesheet'
 APP_DIR = os.path.dirname(os.path.realpath(__file__))
-SELECTED_DIR_NAME = "SELECTED_PICKS"
+SELECTED_DIR_NAME = "_PICKS"
 DELETED_DIR_NAME = ".picks.deleted"
 CONFIG_FILE = os.path.expanduser('~/.picks/config')
 
@@ -31,26 +31,26 @@ class Picks(QtWidgets.QMainWindow):
 
         self._buttons = {}
         for _, c, bl in (
-            ('rename',     lambda: None, {QtCore.Qt.Key_F2}),
-            ('edit',       lambda: None, {QtCore.Qt.Key_F3}),
-            ('slideshow',  lambda: None, {QtCore.Qt.Key_F5}),
-            ('copy',       self.copy_current_file, {QtCore.Qt.Key_F7}),
-            ('copy',       self.move_current_file, {QtCore.Qt.Key_F6}),
-            ('copy',       self.delete_current_file, {QtCore.Qt.Key_Delete}),
-            ('link',       lambda: None, {QtCore.Qt.Key_F8}),
-            ('tag-dialog', self.toggle_tag_dialog, {QtCore.Qt.Key_T}),
-            ('find',       self.txt_file_filter.setFocus, {QtCore.Qt.Key_F}),
-            ('fullscreen', self.toggle_fullscreen, {QtCore.Qt.Key_F11}),
-            ('escape',     self.escape, {QtCore.Qt.Key_Escape}),
-            ('previous',   lambda: self.jump(-1), {QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Left, QtCore.Qt.Key_Up}),
-            ('next',       lambda: self.jump(1), {QtCore.Qt.Key_Space, QtCore.Qt.Key_Right, QtCore.Qt.Key_Down}),
-            ('jump-back',       lambda: self.jump(-10), {QtCore.Qt.Key_PageUp}),
-            ('jump',       lambda: self.jump(10), {QtCore.Qt.Key_PageDown}),
+            ('rename',      lambda: None, {QtCore.Qt.Key_F2}),
+            ('edit',        self.edit_current_file, {QtCore.Qt.Key_F3}),
+            ('slideshow',   lambda: None, {QtCore.Qt.Key_F5}),
+            ('copy',        self.copy_current_file, {QtCore.Qt.Key_F7}),
+            ('copy',        self.move_current_file, {QtCore.Qt.Key_F6}),
+            ('copy',        self.delete_current_file, {QtCore.Qt.Key_Delete}),
+            ('link',        lambda: None, {QtCore.Qt.Key_F8}),
+            ('tag-dialog',  self.toggle_tag_dialog, {QtCore.Qt.Key_T}),
+            ('find',        self.txt_file_filter.setFocus, {QtCore.Qt.Key_F}),
+            ('fullscreen',  self.toggle_fullscreen, {QtCore.Qt.Key_F11}),
+            ('escape',      self.escape, {QtCore.Qt.Key_Escape}),
+            ('previous',    lambda: self.jump(-1), {QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Left, QtCore.Qt.Key_Up}),
+            ('next',        lambda: self.jump(1), {QtCore.Qt.Key_Space, QtCore.Qt.Key_Right, QtCore.Qt.Key_Down}),
+            ('jump-back',   lambda: self.jump(-10), {QtCore.Qt.Key_PageUp}),
+            ('jump',        lambda: self.jump(10), {QtCore.Qt.Key_PageDown}),
             ('first',       lambda: self.goto(0), {QtCore.Qt.Key_Home}),
-            ('last',       lambda: self.goto(-1), {QtCore.Qt.Key_End}),
-            ('none',       lambda: None, {QtCore.Qt.Key_Return, QtCore.Qt.Key_Alt}),
-            ('help',       self.help, {QtCore.Qt.Key_F1, QtCore.Qt.Key_H}),
-            ('clear-cache',       self._clean_cache, {QtCore.Qt.Key_C}),
+            ('last',        lambda: self.goto(-1), {QtCore.Qt.Key_End}),
+            ('none',        lambda: None, {QtCore.Qt.Key_Return, QtCore.Qt.Key_Alt}),
+            ('help',        self.help, {QtCore.Qt.Key_F1, QtCore.Qt.Key_H}),
+            ('clear-cache', lambda: self._clean_cache(force=True), {QtCore.Qt.Key_C}),
         ):
             for b in bl:
                 self._buttons[b] = c
@@ -196,8 +196,8 @@ class Picks(QtWidgets.QMainWindow):
                 return i
         return 0
 
-    def _clean_cache(self):
-        if len(self._image_cache) > 40:
+    def _clean_cache(self, force=False):
+        if force or len(self._image_cache) > 40:
             self._image_cache = {}
 
     def fetch_image_data(self, filename: str) -> list:
@@ -273,6 +273,10 @@ class Picks(QtWidgets.QMainWindow):
 
     def handle_signal(self, _: int) -> None:
         self.close()
+
+    def edit_current_file(self):
+        filename = os.path.abspath(self.selected_filename())
+        os.system('shotwell "%s"' % filename)
 
     def copy_current_file(self):
         os.makedirs(SELECTED_DIR_NAME, exist_ok=True)

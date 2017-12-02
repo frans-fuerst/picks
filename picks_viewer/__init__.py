@@ -11,6 +11,7 @@ import shutil
 import ast
 import json
 import time
+import subprocess
 from PyQt5 import QtWidgets, QtGui, QtCore, uic
 
 import picks_core
@@ -32,11 +33,12 @@ class Picks(QtWidgets.QMainWindow):
         self._buttons = {}
         for _, c, bl in (
             ('rename',      lambda: None, {QtCore.Qt.Key_F2}),
-            ('edit',        self.edit_current_file, {QtCore.Qt.Key_F3}),
+            ('edit',        lambda: self.edit_current_file('shotwell'), {QtCore.Qt.Key_F3}),
+            ('gimp',        lambda: self.edit_current_file('gimp'), {QtCore.Qt.Key_G}),
             ('slideshow',   lambda: None, {QtCore.Qt.Key_F5}),
+            ('move',        self.move_current_file, {QtCore.Qt.Key_F6}),
             ('copy',        self.copy_current_file, {QtCore.Qt.Key_F7}),
-            ('copy',        self.move_current_file, {QtCore.Qt.Key_F6}),
-            ('copy',        self.delete_current_file, {QtCore.Qt.Key_Delete}),
+            ('delete',      self.delete_current_file, {QtCore.Qt.Key_Delete}),
             ('link',        lambda: None, {QtCore.Qt.Key_F8}),
             ('tag-dialog',  self.toggle_tag_dialog, {QtCore.Qt.Key_T}),
             ('find',        self.txt_file_filter.setFocus, {QtCore.Qt.Key_F}),
@@ -183,6 +185,7 @@ class Picks(QtWidgets.QMainWindow):
 
     def selected_filename(self) -> str:
         try:
+            print(self.lst_files.selectedIndexes())
             return self.lst_files.currentItem().text()
         except AttributeError:
             return None
@@ -232,6 +235,10 @@ class Picks(QtWidgets.QMainWindow):
         return self._image_cache[abs_file]
 
     def set_image(self, filename: str):
+        if filename is None:
+            self.lbl_viewer.setPixmap(QtGui.QPixmap())
+            return
+
         pixmap, *_ = self.fetch_image_data(filename)
         self.setWindowTitle('Picks - %s' % filename)
         self.lbl_viewer.setPixmap(pixmap.scaled(
@@ -274,9 +281,9 @@ class Picks(QtWidgets.QMainWindow):
     def handle_signal(self, _: int) -> None:
         self.close()
 
-    def edit_current_file(self):
+    def edit_current_file(self, tool='shotwell'):
         filename = os.path.abspath(self.selected_filename())
-        os.system('shotwell "%s"' % filename)
+        subprocess.Popen(args=[tool, filename])
 
     def copy_current_file(self):
         os.makedirs(SELECTED_DIR_NAME, exist_ok=True)

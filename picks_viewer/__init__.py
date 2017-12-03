@@ -43,6 +43,7 @@ class Picks(QtWidgets.QMainWindow):
             ('tag-dialog',  self.toggle_tag_dialog, {QtCore.Qt.Key_T}),
             ('find',        self.txt_file_filter.setFocus, {QtCore.Qt.Key_F}),
             ('fullscreen',  self.toggle_fullscreen, {QtCore.Qt.Key_F11}),
+            ('zoom',        self.toggle_zoom, {QtCore.Qt.Key_F12}),
             ('escape',      self.escape, {QtCore.Qt.Key_Escape}),
             ('previous',    lambda: self.jump(-1), {QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Left, QtCore.Qt.Key_Up}),
             ('next',        lambda: self.jump(1), {QtCore.Qt.Key_Space, QtCore.Qt.Key_Right, QtCore.Qt.Key_Down}),
@@ -61,6 +62,7 @@ class Picks(QtWidgets.QMainWindow):
         if not 'tags' in self._config:
             self._config['tags'] = []
         self._image_cache = {}
+        self._zoomed = False
 
         self.lbl_notification = QtWidgets.QLabel(self.lbl_viewer)
         self.setMouseTracking(True)
@@ -241,11 +243,16 @@ class Picks(QtWidgets.QMainWindow):
 
         pixmap, *_ = self.fetch_image_data(filename)
         self.setWindowTitle('Picks - %s' % filename)
-        self.lbl_viewer.setPixmap(pixmap.scaled(
-            self.lbl_viewer.width(), self.lbl_viewer.height(),
-            QtCore.Qt.KeepAspectRatio,
-            QtCore.Qt.SmoothTransformation
-        ))
+        if self._zoomed:
+            self.lbl_viewer.setPixmap(
+                pixmap.transformed(
+                    QtGui.QTransform().translate(500, 500)))
+        else:
+            self.lbl_viewer.setPixmap(pixmap.scaled(
+                self.lbl_viewer.width(), self.lbl_viewer.height(),
+                QtCore.Qt.KeepAspectRatio,
+                QtCore.Qt.SmoothTransformation
+            ))
         self.lbl_viewer.setMask(pixmap.mask())
         self._set_config_value(('recent_files', os.getcwd()), filename)
 
@@ -382,6 +389,10 @@ class Picks(QtWidgets.QMainWindow):
             'END: jump to last\n'
             'F1/H: this help',
             QtWidgets.QMessageBox.Ok)
+
+    def toggle_zoom(self):
+        self._zoomed = not self._zoomed
+        self.set_image(self.selected_filename())
 
     def resizeEvent(self, event: QtGui.QResizeEvent):
         try:

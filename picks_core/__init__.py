@@ -128,8 +128,14 @@ def get_orientation(tags: dict) -> int:
         return 0
 
     try:
+        # http://jpegclub.org/exif_orientation.html
         return {1: 0,
+                2: 0,   # should be flipped
+                3: 180,
+                4: 180, # should be flipped
+                5: 90,  # should be flipped
                 6: 90,
+                7: 270, # should be flipped
                 8: 270,
                }[orientation_tag.values[0]]
     except KeyError:

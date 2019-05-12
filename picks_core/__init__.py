@@ -139,9 +139,9 @@ def get_orientation(tags: dict) -> int:
                 8: 270,
                }[orientation_tag.values[0]]
     except KeyError:
-        print('orientation: cannot handle value %d' %
-              orientation_tag.values[0])
-        raise
+        LOG.error('orientation: cannot handle value %d' %
+                  orientation_tag.values[0])
+        return 0
 
 
 def get_tags(filename: str) -> dict:

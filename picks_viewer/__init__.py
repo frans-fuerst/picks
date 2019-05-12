@@ -12,6 +12,7 @@ import ast
 import json
 import time
 import subprocess
+import contextlib
 from PyQt5 import QtWidgets, QtGui, QtCore, uic
 
 import picks_core
@@ -32,7 +33,7 @@ class Picks(QtWidgets.QMainWindow):
 
         self._buttons = {}
         for _, c, bl in (
-            ('rename',      lambda: None, {QtCore.Qt.Key_F2}),
+            ('rename',      lambda: self.rename_current_file, {QtCore.Qt.Key_F2}),
             ('edit',        lambda: self.edit_current_file('shotwell'), {QtCore.Qt.Key_F3}),
             ('gimp',        lambda: self.edit_current_file('gimp'), {QtCore.Qt.Key_G}),
             ('slideshow',   lambda: None, {QtCore.Qt.Key_F5}),
@@ -82,6 +83,7 @@ class Picks(QtWidgets.QMainWindow):
         else:
             directory = os.path.abspath(args.directory)
             filename = self._config.setdefault('recent_files', {}).setdefault(directory, None)
+            # todo(frans): verzeichnis aufsteigen
             os.chdir(directory)
 
         self.le_directory.setText(os.getcwd())
@@ -241,8 +243,16 @@ class Picks(QtWidgets.QMainWindow):
             self.lbl_viewer.setPixmap(QtGui.QPixmap())
             return
 
-        pixmap, *_ = self.fetch_image_data(filename)
+        pixmap, tags, _ = self.fetch_image_data(filename)
         self.setWindowTitle('Picks - %s' % filename)
+        image_data = []
+        with contextlib.suppress(KeyError):
+            image_data.append(tags['EXIF DateTimeOriginal'].printable)
+        with contextlib.suppress(KeyError):
+            image_data.append("%smm (%s)" % (
+                tags['EXIF FocalLength'].printable,
+                tags['EXIF LensModel'].printable))
+        self.lbl_file_info.setText('\n'.join(image_data))
         if self._zoomed:
             self.lbl_viewer.setPixmap(
                 pixmap.transformed(
@@ -287,6 +297,9 @@ class Picks(QtWidgets.QMainWindow):
 
     def handle_signal(self, _: int) -> None:
         self.close()
+
+    def rename_current_file(self):
+        pass
 
     def edit_current_file(self, tool='shotwell'):
         filename = os.path.abspath(self.selected_filename())

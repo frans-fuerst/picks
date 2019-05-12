@@ -51,6 +51,18 @@
             <number>0</number>
            </property>
            <item>
+            <widget class="QLabel" name="lbl_file_info">
+             <property name="font">
+              <font>
+               <family>Monospace</family>
+              </font>
+             </property>
+             <property name="text">
+              <string>n/a</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QListWidget" name="lst_files">
              <property name="editTriggers">
               <set>QAbstractItemView::NoEditTriggers</set>

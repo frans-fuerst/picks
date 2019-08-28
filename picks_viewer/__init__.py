@@ -11,6 +11,7 @@ import shutil
 import ast
 import json
 import time
+import glob
 import subprocess
 import contextlib
 from PyQt5 import QtWidgets, QtGui, QtCore, uic
@@ -323,11 +324,19 @@ class Picks(QtWidgets.QMainWindow):
         self.show_notification('Moved to selected pictures: %s' % filename)
 
     def delete_current_file(self):
+        del_dir_path = os.path.realpath(DELETED_DIR_NAME)
         os.makedirs(DELETED_DIR_NAME, exist_ok=True)
         filename = self.selected_filename()
-        shutil.move(filename, os.path.join(DELETED_DIR_NAME, filename))
+        deleted = []
+        for full, ext in [(f, os.path.splitext(f)[1]) for f in glob.glob("%s*" % os.path.splitext(filename)[0])]:
+            if ext.upper() not in {".PNG", ".JPG", ".CR2"}:
+                continue
+            print (full, ext)
+            shutil.move(full, os.path.join(DELETED_DIR_NAME, full))
+            deleted.append(full)
+
         self.list_files()
-        self.show_notification('Marked as deleted: %s' % filename)
+        self.show_notification('Marked as deleted: \n%s' % '\n'.join(deleted))
 
     def show_notification(self, msg: str):
         LOG.info(msg)

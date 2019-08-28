@@ -145,6 +145,9 @@ def get_orientation(tags: dict) -> int:
 
 
 def get_tags(filename: str) -> dict:
+    # for PNG
+    #  https://blender.stackexchange.com/questions/35504/read-image-metadata-from-python
+
     with open(filename, 'rb') as f:
         return exifread.process_file(f)
 

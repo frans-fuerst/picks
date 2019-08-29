@@ -309,34 +309,38 @@ class Picks(QtWidgets.QMainWindow):
     def copy_current_file(self):
         os.makedirs(SELECTED_DIR_NAME, exist_ok=True)
         src_filename = self.selected_filename()
-        dst_filename = os.path.join(SELECTED_DIR_NAME, src_filename)
-        if os.path.exists(dst_filename):
+        if os.path.exists(os.path.join(SELECTED_DIR_NAME, src_filename)):
             self.show_notification('File already selected: %s' % src_filename)
-        else:
-            shutil.copyfile(src_filename, dst_filename)
-            self.show_notification('Added to selected pictures: %s' % src_filename)
+            return
+        to_be_copied = self.similar_files(src_filename)
+        for filename in to_be_copied:
+            shutil.copyfile(filename, os.path.join(SELECTED_DIR_NAME, filename))
+
+        self.show_notification(
+            'Added to selected pictures: \n%s' % '\n'.join(to_be_copied))
 
     def move_current_file(self):
         os.makedirs(SELECTED_DIR_NAME, exist_ok=True)
         filename = self.selected_filename()
         shutil.move(filename, os.path.join(SELECTED_DIR_NAME, filename))
         self.list_files()
-        self.show_notification('Moved to selected pictures: %s' % filename)
+        self.show_notification(
+            'Moved to selected pictures: %s' % filename)
+
+    @staticmethod
+    def similar_files(filename):
+        return [f for f in glob.glob("%s*" % os.path.splitext(filename)[0])
+                if os.path.splitext(f)[1].upper() in {".PNG", ".JPG", ".CR2"}]
 
     def delete_current_file(self):
         del_dir_path = os.path.realpath(DELETED_DIR_NAME)
         os.makedirs(DELETED_DIR_NAME, exist_ok=True)
-        filename = self.selected_filename()
-        deleted = []
-        for full, ext in [(f, os.path.splitext(f)[1]) for f in glob.glob("%s*" % os.path.splitext(filename)[0])]:
-            if ext.upper() not in {".PNG", ".JPG", ".CR2"}:
-                continue
-            print (full, ext)
-            shutil.move(full, os.path.join(DELETED_DIR_NAME, full))
-            deleted.append(full)
+        to_be_deleted = self.similar_files(self.selected_filename())
+        for filename in to_be_deleted:
+            shutil.move(filename, os.path.join(DELETED_DIR_NAME, filename))
 
         self.list_files()
-        self.show_notification('Marked as deleted: \n%s' % '\n'.join(deleted))
+        self.show_notification('Marked as deleted: \n%s' % '\n'.join(to_be_deleted))
 
     def show_notification(self, msg: str):
         LOG.info(msg)

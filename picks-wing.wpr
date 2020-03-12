@@ -1,7 +1,7 @@
 #!wing
-#!version=5.0
+#!version=7.0
 ##################################################################
-# Wing IDE project file                                          #
+# Wing project file                                              #
 ##################################################################
 [project attributes]
 proj.directory-list = [{'dirloc': loc('.'),
@@ -15,7 +15,7 @@ proj.launch-config = {loc('auto_mate.py'): ('project',
         (u'~/_melburn_2017/146___03',
          '')),
                       loc('picks'): ('project',
-                                     (u'~/_DATA/_melburn_2017/146___03',
+                                     (u'~/_HOME/vietnam/178___03',
                                       '')),
                       loc('picks-cli.py'): ('project',
         (u'/home/frans/_HOME',

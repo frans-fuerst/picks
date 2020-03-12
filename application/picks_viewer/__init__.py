@@ -16,7 +16,7 @@ import subprocess
 import contextlib
 from PyQt5 import QtWidgets, QtGui, QtCore, uic
 
-import picks_core
+import application.picks_core as picks_core
 
 LOG = logging.getLogger('picks')
 STYLESHEET = 'QTDark.stylesheet'

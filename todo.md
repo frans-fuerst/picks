@@ -2,6 +2,10 @@
 Features: Partly available
 --------------------------
 
+* Read PNG info
+* On Delete: delete Raw too
+* allow for common "selected" folder (optionally both, use hardlinks if possible)
+
 * Single picture mode
     - [x] auto rotate
     - [x] center image

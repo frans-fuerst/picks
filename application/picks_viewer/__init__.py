@@ -216,7 +216,8 @@ class Picks(QtWidgets.QMainWindow):
             tags = picks_core.get_tags(filename)
             t2 = time.time()
 
-            pixmap = QtGui.QPixmap(filename).transformed(
+            raw_pixmap = QtGui.QPixmap(filename)
+            pixmap = raw_pixmap.transformed(
                  QtGui.QTransform().rotate(
                      picks_core.get_orientation(tags))).scaled(
                          screenw, screenh,
@@ -226,6 +227,7 @@ class Picks(QtWidgets.QMainWindow):
             t3 = time.time()
             LOG.info('tot: %.2f tags: %.2f pic: %.2f',
                      t3 - t1, t2 - t1, t3 - t2)
+            LOG.info(f"{raw_pixmap.width()}x{raw_pixmap.height()}")
             return [pixmap, tags]
 
         self._clean_cache()
@@ -253,6 +255,9 @@ class Picks(QtWidgets.QMainWindow):
             image_data.append("%smm (%s)" % (
                 tags['EXIF FocalLength'].printable,
                 tags['EXIF LensModel'].printable))
+        with contextlib.suppress(KeyError):
+            image_data.append(f"{tags['EXIF ExifImageLength'].printable}x{tags['EXIF ExifImageWidth'].printable}")
+
         self.lbl_file_info.setText('\n'.join(image_data))
         if self._zoomed:
             self.lbl_viewer.setPixmap(
@@ -348,8 +353,8 @@ class Picks(QtWidgets.QMainWindow):
         new_width = self.lbl_notification.fontMetrics().width(msg) + 50
         self.lbl_notification.setAlignment(QtCore.Qt.AlignCenter)
         self.lbl_notification.setGeometry(
-            QtCore.QRect((self.lbl_viewer.width() - new_width) / 2,
-                         (self.lbl_viewer.height() - 50) / 2,
+            QtCore.QRect((self.lbl_viewer.width() - new_width) // 2,
+                         (self.lbl_viewer.height() - 50) // 2,
                          new_width, 50))
         self.lbl_notification.setVisible(True)
         QtCore.QTimer.singleShot(

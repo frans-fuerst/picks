@@ -1,32 +1,32 @@
 #!wing
-#!version=7.0
+#!version=10.0
 ##################################################################
 # Wing project file                                              #
 ##################################################################
 [project attributes]
 proj.directory-list = [{'dirloc': loc('.'),
                         'excludes': (),
-                        'filter': u'*',
+                        'filter': '*',
                         'include_hidden': False,
                         'recursive': True,
                         'watch_for_changes': True}]
 proj.file-type = 'shared'
 proj.launch-config = {loc('auto_mate.py'): ('project',
-        (u'~/_melburn_2017/146___03',
+        ('~/_melburn_2017/146___03',
          '')),
                       loc('picks'): ('project',
-                                     (u'~/_HOME/vietnam/178___03',
+                                     ('~/_SHARED/camera-canon-sabbatical/_PICKS_modified_9',
                                       '')),
                       loc('picks-cli.py'): ('project',
-        (u'/home/frans/_HOME',
+        ('/home/frans/_HOME',
          '')),
                       loc('picks.py'): ('project',
-        (u'~/_HOME/1703_picks/pics',
+        ('~/_HOME/1703_picks/pics',
          '')),
                       loc('picks_viewer.py'): ('project',
-        (u'/home/frans/_HOME',
+        ('/home/frans/_HOME',
          '')),
                       loc('viewer.py'): ('project',
-        (u'~/_melburn_2017/146___03',
+        ('~/_melburn_2017/146___03',
          ''))}
 proj.main-file = loc('picks')

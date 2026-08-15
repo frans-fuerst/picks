@@ -4,7 +4,6 @@
 """ picks
 
 """
-import os
 
 from contextlib import suppress
 from application import main

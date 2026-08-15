@@ -93,14 +93,15 @@ ignore = [
     # # These are ignored on purpose
     # "COM812", # missing-trailing-comma
     # "ISC001", #
-    # "D203",     # incorrect-blank-line-before-class
-    # # "D211",    # no-blank-line-before-class
+    "D203",     # incorrect-blank-line-before-class
+    # conflicts with D203 "D211",    # no-blank-line-before-class
+
     # "D200",     # One-line docstring should fit on one line
     # "D202",     # No blank lines allowed after function docstring (found 1)
     # "D205",     # 1 blank line required between summary line and description
     # "D209",     # Multi-line docstring closing quotes should be on a separate line
-    # "D212",     # Multi-line docstring summary should start at the first line
-    # "D213",     # Multi-line docstring
+    # conflicts with D213 "D212",     # multi-line-summary-first-line Multi-line docstring summary should start at the first line
+    "D213",     # multi-line-summary-second-line Multi-line docstring  should start at the second line
     # "D400",     # First line should end with a period
     # "D401",     # First line of docstring should be in imperative mood: "Adds generator created from @player_definition_fn to new track definition"
     # "D401",     # First line of docstring should be in imperative mood: "Implementation agnostic wrapper for synthesizer context manager"
@@ -114,7 +115,7 @@ ignore = [
     # "S101",     # Use of `assert` detected
     # "S311",     # Standard pseudo-random generators are not suitable for cryptographic purposes
     # "SIM117",   # Use single `with`
-    # "T201",     # `print` found
+    "T201",     # `print` found
     # "TD001",    # Invalid TODO tag: `Fixme`
     # "TD002",    # Missing author in TODO; try: `# TODO(<author_name>): ...` or `# TODO @<author_name>: ...`
     # "TD003",    # Missing issue link for this TODO

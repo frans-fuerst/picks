@@ -1,39 +1,46 @@
 #!/usr/bin/env python3
+# Copyright (c) 2017-2026 Frans Fürst
+"""Command line entry point for picks."""
 
 import argparse
 import logging
 import os
 import sys
+from pathlib import Path
 
 from picks.application import picks_core
 
 LOG = logging.getLogger("viewer_cli")
 
 
-def run_viewer(args: dict):
-    from picks.application import picks_viewer
+def run_viewer(args: argparse.Namespace) -> None:
+    """Launch the PyQt viewer (imported lazily to avoid a hard dep)."""
+    from picks.application import picks_viewer  # noqa: PLC0415
 
     picks_viewer.main(args)
 
 
-def print_info(args: dict):
+def print_info(_args: argparse.Namespace) -> None:
+    """Print the orientation of every image in the target directory."""
     for f in picks_core.list_pics():
         orientation = picks_core.get_orientation(picks_core.get_tags(f))
         print(orientation, f)
 
 
-def setup_filenames(args: dict):
+def setup_filenames(args: argparse.Namespace) -> None:
+    """Rename images to their synthesized composite filenames."""
     os.chdir(args.directory)
     for f in picks_core.list_pics():
         comp = picks_core.CompFilename.from_str(f)
         if not comp.date:
             comp.date = picks_core.get_date(picks_core.get_tags(f))
         synth = str(comp)
-        print("%s %s, %s, %r" % ("! " if f != synth else "  ", f, synth, comp))
-        os.rename(f, synth)
+        LOG.info("%s %s, %s, %r", "! " if f != synth else "  ", f, synth, comp)
+        Path(f).rename(synth)
 
 
-def main():
+def main() -> None:
+    """Parse arguments and dispatch to the selected sub-command."""
     logging.basicConfig(level=logging.INFO)
 
     parser = argparse.ArgumentParser()
@@ -42,7 +49,7 @@ def main():
     group.add_argument("-i", "--info", action="store_true")
     parser.add_argument("directory", nargs="?", type=str, default=".")
     args = parser.parse_args()
-    print(args)
+    LOG.info("%s", args)
 
     LOG.info(sys.executable)
     LOG.info(".".join(str(e) for e in sys.version_info))

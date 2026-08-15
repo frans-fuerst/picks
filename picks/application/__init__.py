@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-import sys
-import os
-import logging
 import argparse
+import logging
+import os
+import sys
 
 from picks.application import picks_core
 
@@ -45,7 +45,7 @@ def main():
     print(args)
 
     LOG.info(sys.executable)
-    LOG.info(".".join((str(e) for e in sys.version_info)))
+    LOG.info(".".join(str(e) for e in sys.version_info))
 
     if args.initialize:
         setup_filenames(args)

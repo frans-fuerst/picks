@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
-import sys
-import os
+import datetime
 import glob
 import logging
+import os
+import sys
 import types
-import datetime
+
 import exifread
 
 LOG = logging.getLogger("viewer_core")
@@ -33,7 +34,7 @@ class CompFilename(types.SimpleNamespace):
 
     @staticmethod
     def from_str(composite: str):
-        """turns a filename into a tuple containing
+        """Turns a filename into a tuple containing
         a date, an origninal file basename and a list
         of tags
         """
@@ -105,7 +106,7 @@ def get_all_tags(filenames: list) -> set:
     result = []
     for f in filenames:
         for t in CompFilename.from_str(f).tags:
-            if not t in result:
+            if t not in result:
                 result.append(t)
     return result
 
@@ -120,7 +121,7 @@ def is_valid_tag(name: str) -> bool:
     if len(name) < 3:
         return False
     for c in name:
-        if not c in ALLOWED_TAG_CHARACTERS:
+        if c not in ALLOWED_TAG_CHARACTERS:
             return False
     return True
 
@@ -154,7 +155,7 @@ def get_orientation(tags: dict) -> int:
         }[orientation_tag.values[0]]
     except KeyError:
         LOG.error(
-            "orientation: cannot handle value %d" % orientation_tag.values[0]
+            "orientation: cannot handle value %d" % orientation_tag.values[0],
         )
         return 0
 
@@ -176,9 +177,9 @@ def to_tags(tags: str) -> tuple:
 
 def test_filename_decomposer():
     assert CompFilename(
-        date="20170330.172531", tags=[], base="img_123", ext=".jpg"
+        date="20170330.172531", tags=[], base="img_123", ext=".jpg",
     ) == CompFilename(
-        date="20170330.172531", tags=(), base="img_123", ext=".jpg"
+        date="20170330.172531", tags=(), base="img_123", ext=".jpg",
     )
     print(CompFilename.from_str("img_1234.jpg"))
 
@@ -191,9 +192,9 @@ def test_filename_synthesizer():
     print(
         str(
             CompFilename(
-                "20171116.213412", ("tagA", "tagB"), "img_1234", ".jpg"
-            )
-        )
+                "20171116.213412", ("tagA", "tagB"), "img_1234", ".jpg",
+            ),
+        ),
     )
 
 
@@ -201,7 +202,7 @@ def main():
     logging.basicConfig(level=logging.INFO)
 
     LOG.info(sys.executable)
-    LOG.info(".".join((str(e) for e in sys.version_info)))
+    LOG.info(".".join(str(e) for e in sys.version_info))
 
     test_filename_decomposer()
     test_filename_synthesizer()

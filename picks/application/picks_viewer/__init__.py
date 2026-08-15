@@ -2,18 +2,19 @@
 
 """ """
 
-import sys
-import os
-import signal
-import logging
-import shutil
 import ast
-import json
-import time
-import glob
-import subprocess
 import contextlib
-from PyQt5 import QtWidgets, QtGui, QtCore, uic
+import glob
+import json
+import logging
+import os
+import shutil
+import signal
+import subprocess
+import sys
+import time
+
+from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 from picks.application import picks_core
 
@@ -83,7 +84,7 @@ class Picks(QtWidgets.QMainWindow):
                 self._buttons[b] = c
 
         self._config = self._read_config(CONFIG_FILE)
-        if not "tags" in self._config:
+        if "tags" not in self._config:
             self._config["tags"] = []
         self._image_cache = {}
         self._zoomed = False
@@ -97,7 +98,7 @@ class Picks(QtWidgets.QMainWindow):
         self.txt_file_filter.textChanged.connect(self.filter_changed)
         self.txt_tag_filter.textChanged.connect(self.tag_filter_changed)
         self.txt_tag_filter.returnPressed.connect(
-            self.tag_filter_return_pressed
+            self.tag_filter_return_pressed,
         )
 
         self.lst_files.keyPressEvent = self.other_widgets_keypress_event
@@ -108,9 +109,9 @@ class Picks(QtWidgets.QMainWindow):
         else:
             directory = os.path.abspath(args.directory)
             filename = self._config.setdefault("recent_files", {}).setdefault(
-                directory, None
+                directory, None,
             )
-            # todo(frans): verzeichnis aufsteigen
+            # TODO(frans): verzeichnis aufsteigen
             os.chdir(directory)
 
         self.le_directory.setText(os.getcwd())
@@ -129,7 +130,7 @@ class Picks(QtWidgets.QMainWindow):
 
         subtree = self._config
         for e in path:
-            if not e in subtree:
+            if e not in subtree:
                 subtree[e] = {}
             subtree = subtree[e]
 
@@ -157,7 +158,7 @@ class Picks(QtWidgets.QMainWindow):
     def update_tag_list(self, filenames):
         new_tags = self._config["tags"] if "tags" in self._config else []
         for t in picks_core.get_all_tags(filenames):
-            if not t in new_tags:
+            if t not in new_tags:
                 new_tags.append(t)
         self._config["tags"] = new_tags
 
@@ -192,21 +193,21 @@ class Picks(QtWidgets.QMainWindow):
             if next_index < 0
             else self.lst_files.count() - 1
             if next_index >= self.lst_files.count()
-            else next_index
+            else next_index,
         )
 
     def goto(self, index: int):
         if not self.lst_files.count():
             return
         self.lst_files.setCurrentRow(
-            self.lst_files.count() - 1 if index < 0 else index
+            self.lst_files.count() - 1 if index < 0 else index,
         )
         filename = self.selected_filename()
         LOG.info("show file %d: %s", self.selected_index(), filename)
         self.set_image(filename)
         self.repaint()
         QtCore.QMetaObject.invokeMethod(
-            self, "preload", QtCore.Qt.QueuedConnection
+            self, "preload", QtCore.Qt.QueuedConnection,
         )
 
     @QtCore.pyqtSlot()
@@ -214,7 +215,7 @@ class Picks(QtWidgets.QMainWindow):
         for i in range(-1, 3):
             try:
                 self.fetch_image_data(
-                    self.lst_files.item(self.selected_index() + i).text()
+                    self.lst_files.item(self.selected_index() + i).text(),
                 )
             except AttributeError:
                 # ignore index overflow
@@ -250,7 +251,7 @@ class Picks(QtWidgets.QMainWindow):
 
             raw_pixmap = QtGui.QPixmap(filename)
             pixmap = raw_pixmap.transformed(
-                QtGui.QTransform().rotate(picks_core.get_orientation(tags))
+                QtGui.QTransform().rotate(picks_core.get_orientation(tags)),
             ).scaled(
                 screenw,
                 screenh,
@@ -259,7 +260,7 @@ class Picks(QtWidgets.QMainWindow):
             )
             t3 = time.time()
             LOG.info(
-                "tot: %.2f tags: %.2f pic: %.2f", t3 - t1, t2 - t1, t3 - t2
+                "tot: %.2f tags: %.2f pic: %.2f", t3 - t1, t2 - t1, t3 - t2,
             )
             LOG.info(f"{raw_pixmap.width()}x{raw_pixmap.height()}")
             return [pixmap, tags]
@@ -267,7 +268,7 @@ class Picks(QtWidgets.QMainWindow):
         self._clean_cache()
 
         abs_file = os.path.abspath(filename)
-        if not abs_file in self._image_cache:
+        if abs_file not in self._image_cache:
             self._image_cache[abs_file] = load_image(filename)
             self._image_cache[abs_file].append(0.0)
 
@@ -291,17 +292,17 @@ class Picks(QtWidgets.QMainWindow):
                 % (
                     tags["EXIF FocalLength"].printable,
                     tags["EXIF LensModel"].printable,
-                )
+                ),
             )
         with contextlib.suppress(KeyError):
             image_data.append(
-                f"{tags['EXIF ExifImageLength'].printable}x{tags['EXIF ExifImageWidth'].printable}"
+                f"{tags['EXIF ExifImageLength'].printable}x{tags['EXIF ExifImageWidth'].printable}",
             )
 
         self.lbl_file_info.setText("\n".join(image_data))
         if self._zoomed:
             self.lbl_viewer.setPixmap(
-                pixmap.transformed(QtGui.QTransform().translate(500, 500))
+                pixmap.transformed(QtGui.QTransform().translate(500, 500)),
             )
         else:
             self.lbl_viewer.setPixmap(
@@ -310,7 +311,7 @@ class Picks(QtWidgets.QMainWindow):
                     self.lbl_viewer.height(),
                     QtCore.Qt.KeepAspectRatio,
                     QtCore.Qt.SmoothTransformation,
-                )
+                ),
             )
         self.lbl_viewer.setMask(pixmap.mask())
         self._set_config_value(("recent_files", os.getcwd()), filename)
@@ -322,7 +323,7 @@ class Picks(QtWidgets.QMainWindow):
                 self.lst_tags.addItem(t)
 
     def tag_filter_return_pressed(self):
-        # todo: restrict allowed characters in lineEdit
+        # TODO: restrict allowed characters in lineEdit
         if (
             QtWidgets.QApplication.queryKeyboardModifiers()
             == QtCore.Qt.ShiftModifier
@@ -334,10 +335,9 @@ class Picks(QtWidgets.QMainWindow):
             self._config["tags"].append(tag)
             self.txt_tag_filter.setText("")
             self._write_config(CONFIG_FILE, self._config)
-        else:
-            if self.lst_tags.count() == 1:
-                self.apply_tag_to_current_file(self.lst_tags.item(0).text())
-                self.txt_tag_filter.setText("")
+        elif self.lst_tags.count() == 1:
+            self.apply_tag_to_current_file(self.lst_tags.item(0).text())
+            self.txt_tag_filter.setText("")
 
     def apply_tag_to_current_file(self, tag: str):
         picks_core.add_tag_to_file(self.selected_filename(), tag)
@@ -366,11 +366,11 @@ class Picks(QtWidgets.QMainWindow):
         to_be_copied = self.similar_files(src_filename)
         for filename in to_be_copied:
             shutil.copyfile(
-                filename, os.path.join(SELECTED_DIR_NAME, filename)
+                filename, os.path.join(SELECTED_DIR_NAME, filename),
             )
 
         self.show_notification(
-            "Added to selected pictures: \n%s" % "\n".join(to_be_copied)
+            "Added to selected pictures: \n%s" % "\n".join(to_be_copied),
         )
 
     def move_current_file(self):
@@ -389,7 +389,6 @@ class Picks(QtWidgets.QMainWindow):
         ]
 
     def delete_current_file(self):
-        del_dir_path = os.path.realpath(DELETED_DIR_NAME)
         os.makedirs(DELETED_DIR_NAME, exist_ok=True)
         to_be_deleted = self.similar_files(self.selected_filename())
         for filename in to_be_deleted:
@@ -397,7 +396,7 @@ class Picks(QtWidgets.QMainWindow):
 
         self.list_files()
         self.show_notification(
-            "Marked as deleted: \n%s" % "\n".join(to_be_deleted)
+            "Marked as deleted: \n%s" % "\n".join(to_be_deleted),
         )
 
     def show_notification(self, msg: str):
@@ -411,11 +410,11 @@ class Picks(QtWidgets.QMainWindow):
                 (self.lbl_viewer.height() - 50) // 2,
                 new_width,
                 50,
-            )
+            ),
         )
         self.lbl_notification.setVisible(True)
         QtCore.QTimer.singleShot(
-            1500, lambda: self.lbl_notification.setVisible(False)
+            1500, lambda: self.lbl_notification.setVisible(False),
         )
 
     def toggle_tag_dialog(self):
@@ -498,7 +497,7 @@ class Picks(QtWidgets.QMainWindow):
             LOG.warning("unknown key %d", event.key())
 
 
-def main(args: dict):
+def main(_args: dict | None = None):
     class Args:
         pass
 
@@ -508,7 +507,7 @@ def main(args: dict):
     logging.basicConfig(level=logging.INFO)
 
     LOG.info(sys.executable)
-    LOG.info(".".join((str(e) for e in sys.version_info)))
+    LOG.info(".".join(str(e) for e in sys.version_info))
 
     app = QtWidgets.QApplication(sys.argv)
 
@@ -529,4 +528,4 @@ def main(args: dict):
 
 
 if __name__ == "__main__":
-    main(args)
+    main()

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-'''
-'''
+""" """
 
 import sys
 import os
@@ -18,51 +17,74 @@ from PyQt5 import QtWidgets, QtGui, QtCore, uic
 
 from picks.application import picks_core
 
-LOG = logging.getLogger('picks')
-STYLESHEET = 'QTDark.stylesheet'
+LOG = logging.getLogger("picks")
+STYLESHEET = "QTDark.stylesheet"
 APP_DIR = os.path.dirname(os.path.realpath(__file__))
 SELECTED_DIR_NAME = "_PICKS"
 DELETED_DIR_NAME = ".picks.deleted"
-CONFIG_FILE = os.path.expanduser('~/.picks/config')
+CONFIG_FILE = os.path.expanduser("~/.picks/config")
 
 
 class Picks(QtWidgets.QMainWindow):
-
     def __init__(self, args: dict):
         super().__init__()
-        uic.loadUi(os.path.join(APP_DIR, 'picks.ui'), self)
+        uic.loadUi(os.path.join(APP_DIR, "picks.ui"), self)
 
         self._buttons = {}
         for _, c, bl in (
-            ('rename',      lambda: self.rename_current_file, {QtCore.Qt.Key_F2}),
-            ('edit',        lambda: self.edit_current_file('shotwell'), {QtCore.Qt.Key_F3}),
-            ('gimp',        lambda: self.edit_current_file('gimp'), {QtCore.Qt.Key_G}),
-            ('slideshow',   lambda: None, {QtCore.Qt.Key_F5}),
-            ('move',        self.move_current_file, {QtCore.Qt.Key_F6}),
-            ('copy',        self.copy_current_file, {QtCore.Qt.Key_F7}),
-            ('delete',      self.delete_current_file, {QtCore.Qt.Key_Delete}),
-            ('link',        lambda: None, {QtCore.Qt.Key_F8}),
-            ('tag-dialog',  self.toggle_tag_dialog, {QtCore.Qt.Key_T}),
-            ('find',        self.txt_file_filter.setFocus, {QtCore.Qt.Key_F}),
-            ('fullscreen',  self.toggle_fullscreen, {QtCore.Qt.Key_F11}),
-            ('zoom',        self.toggle_zoom, {QtCore.Qt.Key_F12}),
-            ('escape',      self.escape, {QtCore.Qt.Key_Escape}),
-            ('previous',    lambda: self.jump(-1), {QtCore.Qt.Key_Backspace, QtCore.Qt.Key_Left, QtCore.Qt.Key_Up}),
-            ('next',        lambda: self.jump(1), {QtCore.Qt.Key_Space, QtCore.Qt.Key_Right, QtCore.Qt.Key_Down}),
-            ('jump-back',   lambda: self.jump(-10), {QtCore.Qt.Key_PageUp}),
-            ('jump',        lambda: self.jump(10), {QtCore.Qt.Key_PageDown}),
-            ('first',       lambda: self.goto(0), {QtCore.Qt.Key_Home}),
-            ('last',        lambda: self.goto(-1), {QtCore.Qt.Key_End}),
-            ('none',        lambda: None, {QtCore.Qt.Key_Return, QtCore.Qt.Key_Alt}),
-            ('help',        self.help, {QtCore.Qt.Key_F1, QtCore.Qt.Key_H}),
-            ('clear-cache', lambda: self._clean_cache(force=True), {QtCore.Qt.Key_C}),
+            ("rename", lambda: self.rename_current_file, {QtCore.Qt.Key_F2}),
+            (
+                "edit",
+                lambda: self.edit_current_file("shotwell"),
+                {QtCore.Qt.Key_F3},
+            ),
+            (
+                "gimp",
+                lambda: self.edit_current_file("gimp"),
+                {QtCore.Qt.Key_G},
+            ),
+            ("slideshow", lambda: None, {QtCore.Qt.Key_F5}),
+            ("move", self.move_current_file, {QtCore.Qt.Key_F6}),
+            ("copy", self.copy_current_file, {QtCore.Qt.Key_F7}),
+            ("delete", self.delete_current_file, {QtCore.Qt.Key_Delete}),
+            ("link", lambda: None, {QtCore.Qt.Key_F8}),
+            ("tag-dialog", self.toggle_tag_dialog, {QtCore.Qt.Key_T}),
+            ("find", self.txt_file_filter.setFocus, {QtCore.Qt.Key_F}),
+            ("fullscreen", self.toggle_fullscreen, {QtCore.Qt.Key_F11}),
+            ("zoom", self.toggle_zoom, {QtCore.Qt.Key_F12}),
+            ("escape", self.escape, {QtCore.Qt.Key_Escape}),
+            (
+                "previous",
+                lambda: self.jump(-1),
+                {
+                    QtCore.Qt.Key_Backspace,
+                    QtCore.Qt.Key_Left,
+                    QtCore.Qt.Key_Up,
+                },
+            ),
+            (
+                "next",
+                lambda: self.jump(1),
+                {QtCore.Qt.Key_Space, QtCore.Qt.Key_Right, QtCore.Qt.Key_Down},
+            ),
+            ("jump-back", lambda: self.jump(-10), {QtCore.Qt.Key_PageUp}),
+            ("jump", lambda: self.jump(10), {QtCore.Qt.Key_PageDown}),
+            ("first", lambda: self.goto(0), {QtCore.Qt.Key_Home}),
+            ("last", lambda: self.goto(-1), {QtCore.Qt.Key_End}),
+            ("none", lambda: None, {QtCore.Qt.Key_Return, QtCore.Qt.Key_Alt}),
+            ("help", self.help, {QtCore.Qt.Key_F1, QtCore.Qt.Key_H}),
+            (
+                "clear-cache",
+                lambda: self._clean_cache(force=True),
+                {QtCore.Qt.Key_C},
+            ),
         ):
             for b in bl:
                 self._buttons[b] = c
 
         self._config = self._read_config(CONFIG_FILE)
-        if not 'tags' in self._config:
-            self._config['tags'] = []
+        if not "tags" in self._config:
+            self._config["tags"] = []
         self._image_cache = {}
         self._zoomed = False
 
@@ -74,7 +96,9 @@ class Picks(QtWidgets.QMainWindow):
         self.lst_files.itemClicked.connect(self.list_item_clicked)
         self.txt_file_filter.textChanged.connect(self.filter_changed)
         self.txt_tag_filter.textChanged.connect(self.tag_filter_changed)
-        self.txt_tag_filter.returnPressed.connect(self.tag_filter_return_pressed)
+        self.txt_tag_filter.returnPressed.connect(
+            self.tag_filter_return_pressed
+        )
 
         self.lst_files.keyPressEvent = self.other_widgets_keypress_event
 
@@ -83,7 +107,9 @@ class Picks(QtWidgets.QMainWindow):
             os.chdir(os.path.dirname(args.directory))
         else:
             directory = os.path.abspath(args.directory)
-            filename = self._config.setdefault('recent_files', {}).setdefault(directory, None)
+            filename = self._config.setdefault("recent_files", {}).setdefault(
+                directory, None
+            )
             # todo(frans): verzeichnis aufsteigen
             os.chdir(directory)
 
@@ -97,7 +123,7 @@ class Picks(QtWidgets.QMainWindow):
 
     def _set_config_value(self, key, value) -> None:
         if isinstance(key, str):
-            *path, name = key.split('/')
+            *path, name = key.split("/")
         elif isinstance(key, tuple):
             *path, name = key
 
@@ -122,18 +148,18 @@ class Picks(QtWidgets.QMainWindow):
     @staticmethod
     def _write_config(filename: str, data: dict) -> None:
         os.makedirs(os.path.dirname(filename), exist_ok=True)
-        with open(filename, 'w') as f:
+        with open(filename, "w") as f:
             json.dump(data, f)
 
     def update_file_list(self):
-        ''' '''
+        """ """
 
     def update_tag_list(self, filenames):
-        new_tags = self._config['tags'] if 'tags' in self._config else []
+        new_tags = self._config["tags"] if "tags" in self._config else []
         for t in picks_core.get_all_tags(filenames):
             if not t in new_tags:
                 new_tags.append(t)
-        self._config['tags'] = new_tags
+        self._config["tags"] = new_tags
 
     def other_widgets_keypress_event(self, event):
         self.keyPressEvent(event)
@@ -162,28 +188,34 @@ class Picks(QtWidgets.QMainWindow):
     def jump(self, items: int):
         next_index = self.selected_index() + items
         self.goto(
-            0 if next_index < 0 else
-            self.lst_files.count() - 1 if next_index >= self.lst_files.count() else
-            next_index)
+            0
+            if next_index < 0
+            else self.lst_files.count() - 1
+            if next_index >= self.lst_files.count()
+            else next_index
+        )
 
     def goto(self, index: int):
         if not self.lst_files.count():
             return
         self.lst_files.setCurrentRow(
-            self.lst_files.count() - 1 if index < 0 else index)
+            self.lst_files.count() - 1 if index < 0 else index
+        )
         filename = self.selected_filename()
-        LOG.info('show file %d: %s', self.selected_index(), filename)
+        LOG.info("show file %d: %s", self.selected_index(), filename)
         self.set_image(filename)
         self.repaint()
         QtCore.QMetaObject.invokeMethod(
-            self, "preload", QtCore.Qt.QueuedConnection)
+            self, "preload", QtCore.Qt.QueuedConnection
+        )
 
     @QtCore.pyqtSlot()
     def preload(self):
         for i in range(-1, 3):
             try:
                 self.fetch_image_data(
-                    self.lst_files.item(self.selected_index() + i).text())
+                    self.lst_files.item(self.selected_index() + i).text()
+                )
             except AttributeError:
                 # ignore index overflow
                 pass
@@ -218,15 +250,17 @@ class Picks(QtWidgets.QMainWindow):
 
             raw_pixmap = QtGui.QPixmap(filename)
             pixmap = raw_pixmap.transformed(
-                 QtGui.QTransform().rotate(
-                     picks_core.get_orientation(tags))).scaled(
-                         screenw, screenh,
-                         QtCore.Qt.KeepAspectRatio,
-                         QtCore.Qt.SmoothTransformation
-                     )
+                QtGui.QTransform().rotate(picks_core.get_orientation(tags))
+            ).scaled(
+                screenw,
+                screenh,
+                QtCore.Qt.KeepAspectRatio,
+                QtCore.Qt.SmoothTransformation,
+            )
             t3 = time.time()
-            LOG.info('tot: %.2f tags: %.2f pic: %.2f',
-                     t3 - t1, t2 - t1, t3 - t2)
+            LOG.info(
+                "tot: %.2f tags: %.2f pic: %.2f", t3 - t1, t2 - t1, t3 - t2
+            )
             LOG.info(f"{raw_pixmap.width()}x{raw_pixmap.height()}")
             return [pixmap, tags]
 
@@ -247,55 +281,67 @@ class Picks(QtWidgets.QMainWindow):
             return
 
         pixmap, tags, _ = self.fetch_image_data(filename)
-        self.setWindowTitle('Picks - %s' % filename)
+        self.setWindowTitle("Picks - %s" % filename)
         image_data = []
         with contextlib.suppress(KeyError):
-            image_data.append(tags['EXIF DateTimeOriginal'].printable)
+            image_data.append(tags["EXIF DateTimeOriginal"].printable)
         with contextlib.suppress(KeyError):
-            image_data.append("%smm (%s)" % (
-                tags['EXIF FocalLength'].printable,
-                tags['EXIF LensModel'].printable))
+            image_data.append(
+                "%smm (%s)"
+                % (
+                    tags["EXIF FocalLength"].printable,
+                    tags["EXIF LensModel"].printable,
+                )
+            )
         with contextlib.suppress(KeyError):
-            image_data.append(f"{tags['EXIF ExifImageLength'].printable}x{tags['EXIF ExifImageWidth'].printable}")
+            image_data.append(
+                f"{tags['EXIF ExifImageLength'].printable}x{tags['EXIF ExifImageWidth'].printable}"
+            )
 
-        self.lbl_file_info.setText('\n'.join(image_data))
+        self.lbl_file_info.setText("\n".join(image_data))
         if self._zoomed:
             self.lbl_viewer.setPixmap(
-                pixmap.transformed(
-                    QtGui.QTransform().translate(500, 500)))
+                pixmap.transformed(QtGui.QTransform().translate(500, 500))
+            )
         else:
-            self.lbl_viewer.setPixmap(pixmap.scaled(
-                self.lbl_viewer.width(), self.lbl_viewer.height(),
-                QtCore.Qt.KeepAspectRatio,
-                QtCore.Qt.SmoothTransformation
-            ))
+            self.lbl_viewer.setPixmap(
+                pixmap.scaled(
+                    self.lbl_viewer.width(),
+                    self.lbl_viewer.height(),
+                    QtCore.Qt.KeepAspectRatio,
+                    QtCore.Qt.SmoothTransformation,
+                )
+            )
         self.lbl_viewer.setMask(pixmap.mask())
-        self._set_config_value(('recent_files', os.getcwd()), filename)
+        self._set_config_value(("recent_files", os.getcwd()), filename)
 
     def tag_filter_changed(self, text):
         self.lst_tags.clear()
-        for t in self._config['tags']:
+        for t in self._config["tags"]:
             if text in t:
                 self.lst_tags.addItem(t)
 
     def tag_filter_return_pressed(self):
         # todo: restrict allowed characters in lineEdit
-        if QtWidgets.QApplication.queryKeyboardModifiers() == QtCore.Qt.ShiftModifier:
+        if (
+            QtWidgets.QApplication.queryKeyboardModifiers()
+            == QtCore.Qt.ShiftModifier
+        ):
             tag = self.txt_tag_filter.text().lower()
-            if not picks_core.is_valid_tag(tag) or tag in self._config['tags']:
+            if not picks_core.is_valid_tag(tag) or tag in self._config["tags"]:
                 return
             self.show_notification('added new tag "%s"' % tag)
-            self._config['tags'].append(tag)
-            self.txt_tag_filter.setText('')
+            self._config["tags"].append(tag)
+            self.txt_tag_filter.setText("")
             self._write_config(CONFIG_FILE, self._config)
         else:
             if self.lst_tags.count() == 1:
                 self.apply_tag_to_current_file(self.lst_tags.item(0).text())
-                self.txt_tag_filter.setText('')
+                self.txt_tag_filter.setText("")
 
     def apply_tag_to_current_file(self, tag: str):
         picks_core.add_tag_to_file(self.selected_filename(), tag)
-        self.show_notification('Added tag: %s' % tag)
+        self.show_notification("Added tag: %s" % tag)
         self.list_files()
 
     def mouseReleaseEvent(self, event):
@@ -307,7 +353,7 @@ class Picks(QtWidgets.QMainWindow):
     def rename_current_file(self):
         pass
 
-    def edit_current_file(self, tool='shotwell'):
+    def edit_current_file(self, tool="shotwell"):
         filename = os.path.abspath(self.selected_filename())
         subprocess.Popen(args=[tool, filename])
 
@@ -315,27 +361,32 @@ class Picks(QtWidgets.QMainWindow):
         os.makedirs(SELECTED_DIR_NAME, exist_ok=True)
         src_filename = self.selected_filename()
         if os.path.exists(os.path.join(SELECTED_DIR_NAME, src_filename)):
-            self.show_notification('File already selected: %s' % src_filename)
+            self.show_notification("File already selected: %s" % src_filename)
             return
         to_be_copied = self.similar_files(src_filename)
         for filename in to_be_copied:
-            shutil.copyfile(filename, os.path.join(SELECTED_DIR_NAME, filename))
+            shutil.copyfile(
+                filename, os.path.join(SELECTED_DIR_NAME, filename)
+            )
 
         self.show_notification(
-            'Added to selected pictures: \n%s' % '\n'.join(to_be_copied))
+            "Added to selected pictures: \n%s" % "\n".join(to_be_copied)
+        )
 
     def move_current_file(self):
         os.makedirs(SELECTED_DIR_NAME, exist_ok=True)
         filename = self.selected_filename()
         shutil.move(filename, os.path.join(SELECTED_DIR_NAME, filename))
         self.list_files()
-        self.show_notification(
-            'Moved to selected pictures: %s' % filename)
+        self.show_notification("Moved to selected pictures: %s" % filename)
 
     @staticmethod
     def similar_files(filename):
-        return [f for f in glob.glob("%s*" % os.path.splitext(filename)[0])
-                if os.path.splitext(f)[1].upper() in {".PNG", ".JPG", ".CR2"}]
+        return [
+            f
+            for f in glob.glob("%s*" % os.path.splitext(filename)[0])
+            if os.path.splitext(f)[1].upper() in {".PNG", ".JPG", ".CR2"}
+        ]
 
     def delete_current_file(self):
         del_dir_path = os.path.realpath(DELETED_DIR_NAME)
@@ -345,7 +396,9 @@ class Picks(QtWidgets.QMainWindow):
             shutil.move(filename, os.path.join(DELETED_DIR_NAME, filename))
 
         self.list_files()
-        self.show_notification('Marked as deleted: \n%s' % '\n'.join(to_be_deleted))
+        self.show_notification(
+            "Marked as deleted: \n%s" % "\n".join(to_be_deleted)
+        )
 
     def show_notification(self, msg: str):
         LOG.info(msg)
@@ -353,12 +406,17 @@ class Picks(QtWidgets.QMainWindow):
         new_width = self.lbl_notification.fontMetrics().width(msg) + 50
         self.lbl_notification.setAlignment(QtCore.Qt.AlignCenter)
         self.lbl_notification.setGeometry(
-            QtCore.QRect((self.lbl_viewer.width() - new_width) // 2,
-                         (self.lbl_viewer.height() - 50) // 2,
-                         new_width, 50))
+            QtCore.QRect(
+                (self.lbl_viewer.width() - new_width) // 2,
+                (self.lbl_viewer.height() - 50) // 2,
+                new_width,
+                50,
+            )
+        )
         self.lbl_notification.setVisible(True)
         QtCore.QTimer.singleShot(
-            1500, lambda: self.lbl_notification.setVisible(False))
+            1500, lambda: self.lbl_notification.setVisible(False)
+        )
 
     def toggle_tag_dialog(self):
         if not self.frm_tags.isVisible():
@@ -368,7 +426,7 @@ class Picks(QtWidgets.QMainWindow):
 
     def enter_tag_dialog(self):
         self.frm_tags.setVisible(True)
-        self.tag_filter_changed('')
+        self.tag_filter_changed("")
         self.txt_tag_filter.setFocus()
 
     def leave_tag_dialog(self):
@@ -403,23 +461,25 @@ class Picks(QtWidgets.QMainWindow):
 
     def help(self):
         QtWidgets.QMessageBox.question(
-            self, 'Keys',
-            'F2: rename\n'
-            'F6: move\n'
-            'F7: copy\n'
-            'DEL: delete\n'
-            'T: show tag dialog\n'
-            'F: find\n'
-            'F11: toggle fullscreen\n'
-            'ESC: back\n'
-            'BACK/Left/Up: previous\n'
-            'Space/Right/Down: next\n'
-            'PG_UP: jump+10\n'
-            'PG_DOWN: jump-10\n'
-            'HOME: jump to first\n'
-            'END: jump to last\n'
-            'F1/H: this help',
-            QtWidgets.QMessageBox.Ok)
+            self,
+            "Keys",
+            "F2: rename\n"
+            "F6: move\n"
+            "F7: copy\n"
+            "DEL: delete\n"
+            "T: show tag dialog\n"
+            "F: find\n"
+            "F11: toggle fullscreen\n"
+            "ESC: back\n"
+            "BACK/Left/Up: previous\n"
+            "Space/Right/Down: next\n"
+            "PG_UP: jump+10\n"
+            "PG_DOWN: jump-10\n"
+            "HOME: jump to first\n"
+            "END: jump to last\n"
+            "F1/H: this help",
+            QtWidgets.QMessageBox.Ok,
+        )
 
     def toggle_zoom(self):
         self._zoomed = not self._zoomed
@@ -435,19 +495,20 @@ class Picks(QtWidgets.QMainWindow):
         try:
             self._buttons[event.key()]()
         except KeyError:
-            LOG.warning('unknown key %d', event.key())
+            LOG.warning("unknown key %d", event.key())
 
 
 def main(args: dict):
     class Args:
         pass
+
     args = Args()
-    args.directory = '.' if len(sys.argv) < 2 else sys.argv[1]
+    args.directory = "." if len(sys.argv) < 2 else sys.argv[1]
 
     logging.basicConfig(level=logging.INFO)
 
     LOG.info(sys.executable)
-    LOG.info('.'.join((str(e) for e in sys.version_info)))
+    LOG.info(".".join((str(e) for e in sys.version_info)))
 
     app = QtWidgets.QApplication(sys.argv)
 
@@ -467,5 +528,5 @@ def main(args: dict):
     sys.exit(app.exec_())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(args)

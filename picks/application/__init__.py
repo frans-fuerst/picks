@@ -7,11 +7,12 @@ import argparse
 
 from picks.application import picks_core
 
-LOG = logging.getLogger('viewer_cli')
+LOG = logging.getLogger("viewer_cli")
 
 
 def run_viewer(args: dict):
     from picks.application import picks_viewer
+
     picks_viewer.main(args)
 
 
@@ -28,7 +29,7 @@ def setup_filenames(args: dict):
         if not comp.date:
             comp.date = picks_core.get_date(picks_core.get_tags(f))
         synth = str(comp)
-        print('%s %s, %s, %r' % ('! ' if f != synth else '  ', f, synth, comp))
+        print("%s %s, %s, %r" % ("! " if f != synth else "  ", f, synth, comp))
         os.rename(f, synth)
 
 
@@ -39,12 +40,12 @@ def main():
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-n", "--initialize", action="store_true")
     group.add_argument("-i", "--info", action="store_true")
-    parser.add_argument("directory", nargs='?', type=str, default='.')
+    parser.add_argument("directory", nargs="?", type=str, default=".")
     args = parser.parse_args()
     print(args)
 
     LOG.info(sys.executable)
-    LOG.info('.'.join((str(e) for e in sys.version_info)))
+    LOG.info(".".join((str(e) for e in sys.version_info)))
 
     if args.initialize:
         setup_filenames(args)
@@ -54,5 +55,5 @@ def main():
         run_viewer(args)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

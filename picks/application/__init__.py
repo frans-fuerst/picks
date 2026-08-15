@@ -5,14 +5,14 @@ import os
 import logging
 import argparse
 
-import application.picks_core as picks_core
+from picks.application import picks_core
 
 LOG = logging.getLogger('viewer_cli')
 
 
 def run_viewer(args: dict):
-    import application.picks_viewer
-    application.picks_viewer.main(args)
+    from picks.application import picks_viewer
+    picks_viewer.main(args)
 
 
 def print_info(args: dict):

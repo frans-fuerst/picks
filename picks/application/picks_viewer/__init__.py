@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) 2017-2026 Frans Fürst
-"""PyQt5 image viewer for picks."""
+"""PyQt6 image viewer for picks."""
 
 import ast
 import json
@@ -14,9 +14,10 @@ import time
 from contextlib import suppress
 from pathlib import Path
 
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from PyQt6 import QtCore, QtGui, QtWidgets, uic
 
 from picks.application import picks_core
+from picks.application.picks_viewer.photoframe import PhotoFrameDialog
 
 LOG = logging.getLogger("picks")
 STYLESHEET = "QTDark.stylesheet"
@@ -49,51 +50,60 @@ class Picks(QtWidgets.QMainWindow):
 
         self._buttons: dict[int, object] = {}
         for _name, c, bl in (
-            ("rename", self.rename_current_file, {QtCore.Qt.Key_F2}),
+            ("rename", self.rename_current_file, {QtCore.Qt.Key.Key_F2}),
             (
                 "edit",
                 lambda: self.edit_current_file("shotwell"),
-                {QtCore.Qt.Key_F3},
+                {QtCore.Qt.Key.Key_F3},
             ),
             (
                 "gimp",
                 lambda: self.edit_current_file("gimp"),
-                {QtCore.Qt.Key_G},
+                {QtCore.Qt.Key.Key_G},
             ),
-            ("slideshow", lambda: None, {QtCore.Qt.Key_F5}),
-            ("move", self.move_current_file, {QtCore.Qt.Key_F6}),
-            ("copy", self.copy_current_file, {QtCore.Qt.Key_F7}),
-            ("delete", self.delete_current_file, {QtCore.Qt.Key_Delete}),
-            ("link", lambda: None, {QtCore.Qt.Key_F8}),
-            ("tag-dialog", self.toggle_tag_dialog, {QtCore.Qt.Key_T}),
-            ("find", self.txt_file_filter.setFocus, {QtCore.Qt.Key_F}),
-            ("fullscreen", self.toggle_fullscreen, {QtCore.Qt.Key_F11}),
-            ("zoom", self.toggle_zoom, {QtCore.Qt.Key_F12}),
-            ("escape", self.escape, {QtCore.Qt.Key_Escape}),
+            ("photoframe", self.send_to_photoframe, {QtCore.Qt.Key.Key_F4}),
+            ("slideshow", lambda: None, {QtCore.Qt.Key.Key_F5}),
+            ("move", self.move_current_file, {QtCore.Qt.Key.Key_F6}),
+            ("copy", self.copy_current_file, {QtCore.Qt.Key.Key_F7}),
+            ("delete", self.delete_current_file, {QtCore.Qt.Key.Key_Delete}),
+            ("link", lambda: None, {QtCore.Qt.Key.Key_F8}),
+            ("tag-dialog", self.toggle_tag_dialog, {QtCore.Qt.Key.Key_T}),
+            ("find", self.txt_file_filter.setFocus, {QtCore.Qt.Key.Key_F}),
+            ("fullscreen", self.toggle_fullscreen, {QtCore.Qt.Key.Key_F11}),
+            ("zoom", self.toggle_zoom, {QtCore.Qt.Key.Key_F12}),
+            ("escape", self.escape, {QtCore.Qt.Key.Key_Escape}),
             (
                 "previous",
                 lambda: self.jump(-1),
                 {
-                    QtCore.Qt.Key_Backspace,
-                    QtCore.Qt.Key_Left,
-                    QtCore.Qt.Key_Up,
+                    QtCore.Qt.Key.Key_Backspace,
+                    QtCore.Qt.Key.Key_Left,
+                    QtCore.Qt.Key.Key_Up,
                 },
             ),
             (
                 "next",
                 lambda: self.jump(1),
-                {QtCore.Qt.Key_Space, QtCore.Qt.Key_Right, QtCore.Qt.Key_Down},
+                {
+                    QtCore.Qt.Key.Key_Space,
+                    QtCore.Qt.Key.Key_Right,
+                    QtCore.Qt.Key.Key_Down,
+                },
             ),
-            ("jump-back", lambda: self.jump(-10), {QtCore.Qt.Key_PageUp}),
-            ("jump", lambda: self.jump(10), {QtCore.Qt.Key_PageDown}),
-            ("first", lambda: self.goto(0), {QtCore.Qt.Key_Home}),
-            ("last", lambda: self.goto(-1), {QtCore.Qt.Key_End}),
-            ("none", lambda: None, {QtCore.Qt.Key_Return, QtCore.Qt.Key_Alt}),
-            ("help", self.help, {QtCore.Qt.Key_F1, QtCore.Qt.Key_H}),
+            ("jump-back", lambda: self.jump(-10), {QtCore.Qt.Key.Key_PageUp}),
+            ("jump", lambda: self.jump(10), {QtCore.Qt.Key.Key_PageDown}),
+            ("first", lambda: self.goto(0), {QtCore.Qt.Key.Key_Home}),
+            ("last", lambda: self.goto(-1), {QtCore.Qt.Key.Key_End}),
+            (
+                "none",
+                lambda: None,
+                {QtCore.Qt.Key.Key_Return, QtCore.Qt.Key.Key_Alt},
+            ),
+            ("help", self.help, {QtCore.Qt.Key.Key_F1, QtCore.Qt.Key.Key_H}),
             (
                 "clear-cache",
                 lambda: self._clean_cache(force=True),
-                {QtCore.Qt.Key_C},
+                {QtCore.Qt.Key.Key_C},
             ),
         ):
             for b in bl:
@@ -126,7 +136,7 @@ class Picks(QtWidgets.QMainWindow):
         else:
             directory = str(directory_path.resolve())
             filename = self._config.setdefault("recent_files", {}).setdefault(  # type: ignore[union-attr]
-                directory, None
+                directory, None,
             )
             os.chdir(directory)
 
@@ -240,7 +250,7 @@ class Picks(QtWidgets.QMainWindow):
         QtCore.QMetaObject.invokeMethod(
             self,
             "preload",
-            QtCore.Qt.QueuedConnection,
+            QtCore.Qt.ConnectionType.QueuedConnection,
         )
 
     @QtCore.pyqtSlot()
@@ -280,7 +290,11 @@ class Picks(QtWidgets.QMainWindow):
         """Load (and cache) a scaled pixmap and its EXIF tags."""
 
         def load_image(fname: str) -> list[object]:
-            size_object = QtWidgets.QDesktopWidget().screenGeometry(-1)
+            screen = QtWidgets.QApplication.primaryScreen()
+            if screen is not None:
+                size_object = screen.geometry()
+            else:
+                size_object = QtCore.QRect(0, 0, 1920, 1080)
             screenw, screenh = size_object.width(), size_object.height()
             t1 = time.time()
             tags = picks_core.get_tags(fname)
@@ -292,8 +306,8 @@ class Picks(QtWidgets.QMainWindow):
             ).scaled(
                 screenw,
                 screenh,
-                QtCore.Qt.KeepAspectRatio,
-                QtCore.Qt.SmoothTransformation,
+                QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+                QtCore.Qt.TransformationMode.SmoothTransformation,
             )
             t3 = time.time()
             LOG.info(
@@ -348,8 +362,8 @@ class Picks(QtWidgets.QMainWindow):
                 pixmap.scaled(  # type: ignore[union-attr]
                     self.lbl_viewer.width(),
                     self.lbl_viewer.height(),
-                    QtCore.Qt.KeepAspectRatio,
-                    QtCore.Qt.SmoothTransformation,
+                    QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+                    QtCore.Qt.TransformationMode.SmoothTransformation,
                 ),
             )
         self.lbl_viewer.setMask(pixmap.mask())  # type: ignore[union-attr]
@@ -366,7 +380,7 @@ class Picks(QtWidgets.QMainWindow):
         """Handle Enter in the tag filter: add a new tag or apply one."""
         if (
             QtWidgets.QApplication.queryKeyboardModifiers()
-            == QtCore.Qt.ShiftModifier
+            == QtCore.Qt.KeyboardModifier.ShiftModifier
         ):
             tag = self.txt_tag_filter.text().lower()
             if not picks_core.is_valid_tag(tag) or tag in self._config["tags"]:  # type: ignore[operator]
@@ -399,6 +413,14 @@ class Picks(QtWidgets.QMainWindow):
         """Open the selected file in an external editor."""
         filename = str(Path(self.selected_filename()).resolve())  # type: ignore[arg-type]
         subprocess.Popen(args=[tool, filename])  # noqa: S603
+
+    def send_to_photoframe(self) -> None:
+        """Open the photo frame upload dialog for the current image."""
+        filename = self.selected_filename()
+        if filename is None:
+            return
+        dialog = PhotoFrameDialog(str(Path(filename).resolve()), self)
+        dialog.exec()
 
     def copy_current_file(self) -> None:
         """Copy the selected file (and similar ones) to the selection dir."""
@@ -457,8 +479,10 @@ class Picks(QtWidgets.QMainWindow):
         """Show a transient notification over the image area."""
         LOG.info(msg)
         self.lbl_notification.setText(msg)
-        new_width = self.lbl_notification.fontMetrics().width(msg) + 50
-        self.lbl_notification.setAlignment(QtCore.Qt.AlignCenter)
+        new_width = (
+            self.lbl_notification.fontMetrics().horizontalAdvance(msg) + 50
+        )
+        self.lbl_notification.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.lbl_notification.setGeometry(
             QtCore.QRect(
                 (self.lbl_viewer.width() - new_width) // 2,
@@ -527,6 +551,7 @@ class Picks(QtWidgets.QMainWindow):
             self,
             "Keys",
             "F2: rename\n"
+            "F4: send to photoframe\n"
             "F6: move\n"
             "F7: copy\n"
             "DEL: delete\n"
@@ -541,7 +566,7 @@ class Picks(QtWidgets.QMainWindow):
             "HOME: jump to first\n"
             "END: jump to last\n"
             "F1/H: this help",
-            QtWidgets.QMessageBox.Ok,
+            QtWidgets.QMessageBox.StandardButton.Ok,
         )
 
     def toggle_zoom(self) -> None:
@@ -586,7 +611,7 @@ def main(_args: Args | None = None) -> None:
     timer.start(200)
     timer.timeout.connect(lambda: None)
 
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 
 if __name__ == "__main__":
